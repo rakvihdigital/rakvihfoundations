@@ -1,0 +1,313 @@
+@import "tailwindcss";
+
+/* Enable dark mode */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+.dark {
+  --background: #0b1220;
+  --foreground: #f8fafc;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html,
+body {
+  background: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Hide scrollbar but allow scrolling */
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+/* Ultra Small Scrollbar */
+
+.sidebar-scrollbar {
+  overflow-y: auto;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #8d9b4d transparent;
+}
+
+/* Chrome / Edge / Safari */
+.sidebar-scrollbar::-webkit-scrollbar {
+  width: 1px !important;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background: #8d9b4d;
+  border-radius: 999px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #6B7328;
+}
+
+/* Dark Mode */
+.dark .sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background: #5c7fa3;
+}
+
+.dark .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #7ea9d6;
+}
+
+
+@keyframes progress-fill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.animate-progress-fill {
+  animation: progress-fill 1.2s ease-out forwards;
+}
+
+@keyframes progress-fill {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+.animate-progress-fill {
+  animation: progress-fill 1.3s ease-out forwards;
+}
+@keyframes progress-fill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.animate-progress-fill {
+  animation: progress-fill 1.5s ease-out forwards;
+}
+
+@keyframes growLine {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+/* Small Professional Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #FFC107, #6B7328);
+  border-radius: 999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #F4B400, #55601F);
+}
+
+/* Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #6B7328 transparent;
+}
+/* Professional Small Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f8f8f8;
+  border-radius: 999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #FFC107, #6B7328);
+  border-radius: 999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #eab308, #55601F);
+}
+
+/* Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #6B7328 #f8f8f8;
+}
+
+/* Small Professional Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f8f8f8;
+  border-radius: 999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #FFC107, #6B7328);
+  border-radius: 999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #eab308, #55601F);
+}
+
+/* Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #6B7328 #f8f8f8;
+}
+
+
+
+/* Small Scrollbar */
+.profile-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.profile-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.profile-scroll::-webkit-scrollbar-thumb {
+  background: #d4af37;
+  border-radius: 9999px;
+}
+
+.profile-scroll::-webkit-scrollbar-thumb:hover {
+  background: #b88d00;
+}
+
+
+/* Topic Dropdown */
+.topic-dropdown {
+  scrollbar-width: thin;
+  scrollbar-color: #6B7328 #f3f4f6;
+}
+
+.topic-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.topic-dropdown::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 10px;
+}
+
+.topic-dropdown::-webkit-scrollbar-thumb {
+  background: #6B7328;
+  border-radius: 10px;
+}
+
+.topic-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #556020;
+}
+
+
+/* Select scrollbar */
+select {
+  scrollbar-width: thin;
+  scrollbar-color: #6B7328 #f1f5f9;
+}
+
+select::-webkit-scrollbar {
+  width: 5px;
+}
+
+select::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+select::-webkit-scrollbar-thumb {
+  background: #6B7328;
+  border-radius: 10px;
+}
+
+select::-webkit-scrollbar-thumb:hover {
+  background: #4D6B2F;
+}
+
+@keyframes slideOnce {
+  from {
+    transform: translateX(-120%);
+  }
+
+  to {
+    transform: translateX(420%);
+  }
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+  border-radius: 20px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+/* Custom Scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #FFC107 #F3F4F6;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #F3F4F6;
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #8A8A1E, #FFC107);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #D9A404;
+}

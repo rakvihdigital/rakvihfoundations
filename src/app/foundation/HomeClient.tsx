@@ -151,7 +151,7 @@ const fadeInUp = {
   visible: { opacity: 1, y: 0 },
 };
 
-const viewportOnce = { once: true, margin: "-50px" };
+const viewportOnce = { once: true, margin: "-30px" };
 
 type Props = {
   causes: CauseCategory[];
@@ -348,29 +348,31 @@ export default function HomeClient({ causes, gallery }: Props) {
         </motion.div>
       </section>
 
-      {/* Mission */}
+      {/* Mission (Why we started) */}
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 overflow-hidden">
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2">
           
-          {/* HIGHLY AESTHETIC IMAGE MOTION */}
+          {/* BULLETPROOF CUSTOM MOTION */}
           <motion.div
-            initial={{ opacity: 0, y: 50, filter: "blur(10px)", clipPath: "inset(0 0 100% 0)" }}
-            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)", clipPath: "inset(0 0 0% 0)" }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            className="relative aspect-[4/5] overflow-hidden rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)]"
+            initial={{ opacity: 0, x: -50, filter: "blur(8px)" }}
+            whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+            viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 1.0, ease: "easeOut" }}
+            // Added w-full so it properly expands inside the grid column
+            className="relative w-full aspect-[4/5] overflow-hidden rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)]"
           >
             <motion.div
-              initial={{ scale: 1.4 }}
+              initial={{ scale: 1.2 }}
               whileInView={{ scale: 1 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
+              viewport={{ once: true, margin: "-30px" }}
+              transition={{ duration: 1.4, ease: "easeOut" }}
               className="absolute inset-0 h-full w-full"
             >
               <Image 
-                src="/banner2.jpg" 
+                src="/banner9.png" 
                 alt="Rakvih Foundation volunteers at work" 
                 fill 
+                sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover transition-transform duration-[1.5s] hover:scale-105" 
               />
               <div className="absolute inset-0 bg-black/10 transition-opacity duration-700 hover:opacity-0" />

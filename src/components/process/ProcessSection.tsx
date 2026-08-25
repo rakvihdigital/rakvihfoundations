@@ -28,13 +28,13 @@ export default function ProcessSection() {
           className="mb-12 text-center"
         >
           <p className="text-[10px] font-bold uppercase tracking-[4px] text-[#FFC107]">
-            SIMPLE PROCESS
+            A SIMPLE SIX-STEP JOURNEY
           </p>
           <h2 className="mt-2 text-2xl font-black tracking-tight text-[#798321] md:text-4xl dark:text-white">
-            How It Works
+            How the RAKVIH Internship Process Works
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-xs leading-6 text-gray-600 dark:text-neutral-300">
-            Complete your registration in a few simple steps and begin your internship journey with live projects, expert mentorship, and placement assistance.
+            Getting started takes minutes: register your account, complete a simple payment, get admin-verified, receive your login credentials, begin learning through live projects and mentor sessions, and finish with an industry-recognised certificate.
           </p>
           <div className="mx-auto mt-5 h-1 w-12 rounded-full bg-gradient-to-r from-[#798321] via-[#FFC107] to-[#798321]" />
         </motion.div>

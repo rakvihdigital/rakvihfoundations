@@ -1,6 +1,21 @@
 // src/app/foundation/page.tsx
+import type { Metadata } from "next";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import HomeClient from "./HomeClient";
+
+export const metadata: Metadata = {
+  title: "RAKVIH Foundation | Donate Meals, Education & Healthcare — Bengaluru NGO",
+  description: "RAKVIH Foundation is a transparent NGO in Bengaluru delivering meals, education & healthcare item-by-item. 48,200+ meals served, 3,150+ families supported. See the cost, then donate.",
+  keywords: [
+    "donate food NGO Bangalore",
+    "NGO in Bengaluru",
+    "sponsor a meal India",
+    "transparent donation platform",
+    "item-level donation NGO",
+    "CSR partner NGO Bangalore",
+    "food drive NGO"
+  ],
+};
 
 export const revalidate = 60;
 

@@ -102,17 +102,20 @@ export default function SuccessStoryForm() {
   return (
    <div
 className="
-  sticky
-  top-24
-  self-start
-  hidden
-  xl:block
-
   w-full
   max-w-[360px]
+  mx-auto
 
-  h-[82vh]
-  overflow-y-auto
+  xl:sticky
+  xl:top-24
+  xl:self-start
+  xl:mx-0
+
+  h-auto
+  overflow-visible
+
+  xl:h-[82vh]
+  xl:overflow-y-auto
 
   rounded-3xl
   border

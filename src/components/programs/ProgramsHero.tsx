@@ -129,7 +129,7 @@ export default function ProgramsHero() {
             dark:text-white
           "
         >
-          Explore Professional Tracks
+          Explore Professional Internship Tracks Built for Today's Job Market
         </motion.h1>
 
         {/* Underline */}
@@ -168,9 +168,7 @@ export default function ProgramsHero() {
             dark:text-neutral-300
           "
         >
-          Explore industry-focused professional tracks with live projects,
-          expert mentorship, certifications, and placement assistance to
-          build a successful career.
+          Every RAKVIH program is designed around one question: what will actually get you hired? Each track below combines live projects, expert mentorship, a verified certificate, and placement assistance so you graduate with proof of real, applied skill, not just a completion badge.
         </motion.p>
 
       </div>

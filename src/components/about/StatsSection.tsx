@@ -4,10 +4,10 @@ import { motion } from "framer-motion";
 import { Users, Briefcase, Award, Building2 } from "lucide-react";
 
 const stats = [
-  { icon: Users, number: "10K+", title: "Students" },
-  { icon: Briefcase, number: "500+", title: "Placements" },
-  { icon: Building2, number: "50+", title: "Companies" },
-  { icon: Award, number: "100+", title: "Mentors" },
+  { icon: Users, number: "10,000+", title: "Students Trained" },
+  { icon: Briefcase, number: "500+", title: "Successful Placements" },
+  { icon: Building2, number: "50+", title: "Hiring Companies" },
+  { icon: Award, number: "100+", title: "Industry Mentors" },
 ];
 
 export default function StatsSection() {
@@ -45,10 +45,10 @@ export default function StatsSection() {
         {/* Heading */}
         <div className="mb-10 text-center">
           <p className="text-[11px] font-bold uppercase tracking-[4px] text-[#FFC107]">
-            Our Impact
+            Our Impact So Far
           </p>
           <h2 className="mt-2 text-2xl md:text-3xl font-black tracking-tight text-[#798321] dark:text-white">
-            Numbers Speak
+            Numbers We Keep Growing Every Intake
           </h2>
         </div>
 

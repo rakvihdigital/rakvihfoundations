@@ -31,14 +31,14 @@ export default function Hero() {
       <HeroBackground />
 
       {/* Top Badge */}
-      <div className="relative z-30 flex justify-center pt-6">
+      <div className="relative z-30 flex justify-center pt-24 sm:pt-20 lg:pt-28">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="flex items-center gap-2.5 px-6 py-2.5 rounded-full shadow-md bg-[#868F2C] text-white"
         >
-          <Award size={18} className="text-white" />
+          <Award size={18} className="text-white" aria-hidden="true" />
           <span className="text-xs sm:text-sm font-bold uppercase tracking-widest">
             #1 Career Platform
           </span>
@@ -46,8 +46,7 @@ export default function Hero() {
       </div>
 
       {/* Main Grid Container */}
-      <div className="relative z-20 w-full max-w-[1350px] mx-auto px-6 grid lg:grid-cols-[1.1fr_1.2fr] gap-12 lg:gap-8 items-center py-10 lg:py-16">
-        
+      <div className="relative z-20 w-full max-w-[1350px] mx-auto px-4 sm:px-6 grid lg:grid-cols-[1.1fr_1.2fr] gap-12 lg:gap-8 items-center py-10 lg:py-16">
         {/* Left Content */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
@@ -57,20 +56,18 @@ export default function Hero() {
         >
           <h1 className="leading-[1.1] tracking-[-0.02em]">
             <span
-              className="block font-bold text-[38px] sm:text-[46px] lg:text-[52px]"
+              className="block font-bold text-[32px] sm:text-[40px] lg:text-[46px]"
               style={{ color: COLORS.green }}
             >
-              Launch Your Career
+              Launch Your Career With RAKVIH
             </span>
-            <span className="block mt-1 font-extrabold text-[40px] sm:text-[48px] lg:text-[56px] bg-gradient-to-r from-[#FFC107] to-[#868F2C] bg-clip-text text-transparent">
-              With RAKVIH
+            <span className="block mt-1 font-extrabold text-[34px] sm:text-[42px] lg:text-[50px] bg-gradient-to-r from-[#FFC107] to-[#868F2C] bg-clip-text text-transparent">
+              Industry-Ready Internship Programs
             </span>
           </h1>
 
-          <p className="mt-6 text-[15px] sm:text-[16px] leading-relaxed max-w-[480px] text-gray-600 dark:text-neutral-300">
-            Industry-focused internship programs designed to build practical
-            skills, gain real-world experience, and unlock exciting career
-            opportunities for future professionals.
+          <p className="mt-6 text-[15px] sm:text-[16px] leading-relaxed max-w-[540px] text-gray-600 dark:text-neutral-300">
+            RAKVIH is a career platform built for students who want more than a certificate—experience that employers actually recognise. Every RAKVIH internship pairs you with an industry mentor, puts you on a live project from week one, and ends with a verified certificate plus placement support.
           </p>
 
           <div className="mt-8 w-full">
@@ -86,7 +83,6 @@ export default function Hero() {
           className="relative flex justify-center py-6 lg:py-0"
         >
           <div className="relative w-full max-w-[620px]">
-            
             {/* Main Image Wrapper */}
             <div className="rounded-[24px] p-2 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-xl border border-gray-100 dark:border-neutral-800 shadow-2xl">
               <Image
@@ -95,6 +91,7 @@ export default function Hero() {
                 width={750}
                 height={400}
                 priority
+                sizes="(max-width: 1024px) 100vw, 620px"
                 className="w-full h-[320px] sm:h-[380px] object-cover rounded-[18px]"
               />
             </div>
@@ -149,7 +146,7 @@ function FloatingCard({
         className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-inner"
         style={{ backgroundColor: `${color}20` }}
       >
-        <Icon size={22} style={{ color }} />
+        <Icon size={22} style={{ color }} aria-hidden="true" />
       </div>
 
       <div>

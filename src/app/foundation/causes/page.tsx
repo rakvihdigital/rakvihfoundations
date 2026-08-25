@@ -20,44 +20,92 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 );
 
+// ── SEO copy (adapted from RAKVIH SEO Content Pack, Section 12 — /foundation/causes) ──
+// "Ways to Give" is kept as the on-page H1/branding per site decision; the title tag and
+// meta description below fold in the pack's original "Donate to a Cause" keyword intent
+// so search snippets still surface the right terms even though the page reads "Ways to Give".
+const SEO_TITLE =
+  "Ways to Give | Donate to a Cause — Food, Child, Education & Events | RAKVIH Foundation";
+const SEO_DESCRIPTION =
+  "Choose exactly what you fund — a meal, a schoolbook, a health checkup. See the cost, sponsor it directly, and get proof it reached someone. Donate to a cause with RAKVIH Foundation.";
+const CANONICAL_URL = "https://www.rakvihfoundation.org.in/foundation/causes";
+
+// ── Fallback data aligned to the site's established "Four Causes" framework ──
+// (per SEO Content Pack, Section 10 — Foundation Home: "Four Causes, One Clear Rule:
+// Food, Child Support, Education, and Special Events") so a failed Supabase fetch never
+// shows categories that contradict the rest of the site.
 const fallbackCategories = [
-  { id: 1, title: "Social Welfare" },
-  { id: 2, title: "Environment" },
-  { id: 3, title: "Education & Youth" },
+  { id: 1, title: "Food" },
+  { id: 2, title: "Child Support" },
+  { id: 3, title: "Education" },
+  { id: 4, title: "Special Events" },
 ];
 
 const fallbackCauses = [
   {
     id: 101,
     category_id: 1,
-    title: "Child Education Support",
-    name: "Child Education Support",
-    short_description: "Empowering underprivileged children with quality learning materials, tuition, and school fees.",
+    title: "Feed a Homeless Person",
+    name: "Feed a Homeless Person",
+    short_description: "Sponsor a nutritious meal for someone living on the street — a direct, item-level way to fight hunger today.",
     image_url: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=1000&auto=format&fit=crop",
     image: null,
-    cost_per_person: 1200,
+    cost_per_person: 100,
     is_active: true,
   },
   {
     id: 102,
-    category_id: 2,
-    title: "Green Earth Tree Plantation",
-    name: "Green Earth Tree Plantation",
-    short_description: "Planting saplings across urban and rural zones to fight climate change and preserve local ecosystems.",
+    category_id: 1,
+    title: "Thaali Meals",
+    name: "Thaali Meals",
+    short_description: "Fund a full thaali meal for a family in need, delivered with photo proof of every distribution.",
     image_url: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=1000&auto=format&fit=crop",
     image: null,
-    cost_per_person: 500,
+    cost_per_person: 150,
     is_active: true,
   },
   {
     id: 103,
-    category_id: 3,
-    title: "Rural Healthcare Camp",
-    name: "Rural Healthcare Camp",
-    short_description: "Providing essential medical checkups, life-saving medicines, and health awareness in remote villages.",
+    category_id: 2,
+    title: "Child Care Kit",
+    name: "Child Care Kit",
+    short_description: "Provide essential hygiene, nutrition and care items for a child who needs them most.",
     image_url: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?q=80&w=1000&auto=format&fit=crop",
     image: null,
-    cost_per_person: 750,
+    cost_per_person: 600,
+    is_active: true,
+  },
+  {
+    id: 104,
+    category_id: 3,
+    title: "School Bag",
+    name: "School Bag",
+    short_description: "Give a child the school bag they need to attend class every day, tracked back to the exact recipient.",
+    image_url: "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1000&auto=format&fit=crop",
+    image: null,
+    cost_per_person: 450,
+    is_active: true,
+  },
+  {
+    id: 105,
+    category_id: 3,
+    title: "Educate a Child",
+    name: "Educate a Child",
+    short_description: "Sponsor a child's education costs for a term — books, fees and materials, fully accounted for.",
+    image_url: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=1000&auto=format&fit=crop",
+    image: null,
+    cost_per_person: 2500,
+    is_active: true,
+  },
+  {
+    id: 106,
+    category_id: 4,
+    title: "Birthday Celebration",
+    name: "Birthday Celebration",
+    short_description: "Sponsor a birthday celebration — cake, gifts and joy — for a child who wouldn't otherwise have one.",
+    image_url: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?q=80&w=1000&auto=format&fit=crop",
+    image: null,
+    cost_per_person: 800,
     is_active: true,
   },
 ];
@@ -68,6 +116,28 @@ export default function CausesPage() {
   const [selectedCategory, setSelectedCategory] = useState<number | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // Set document title + meta description since this is a client component
+  // and can't use Next.js's `metadata` export directly.
+  useEffect(() => {
+    document.title = SEO_TITLE;
+
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement("meta");
+      metaDesc.setAttribute("name", "description");
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute("content", SEO_DESCRIPTION);
+
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute("href", CANONICAL_URL);
+  }, []);
 
   useEffect(() => {
     async function fetchCausesData() {
@@ -104,7 +174,7 @@ export default function CausesPage() {
 
   return (
     <div className={`min-h-screen bg-slate-50 dark:bg-black transition-colors duration-500 ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
-      
+
       <section className="relative overflow-hidden pt-24 pb-16 sm:pt-32 sm:pb-20 bg-gradient-to-b from-[#24310F] via-[#2F3E14] to-[#F8FAF0] text-white dark:from-black dark:via-black dark:to-black">
         <motion.div
           aria-hidden="true"
@@ -147,7 +217,9 @@ export default function CausesPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-200 sm:text-base dark:text-neutral-300"
           >
-            Explore our ongoing initiatives across social welfare, environment preservation, and community building. Choose a way to give that's close to your heart.
+            No vague fund here — choose exactly what you're supporting across Food, Child
+            Support, Education, and Special Events, see the exact cost, and get proof it
+            reached someone. Sponsor a meal, a schoolbook, or a checkup, item by item.
           </motion.p>
         </div>
       </section>
@@ -235,12 +307,12 @@ export default function CausesPage() {
                     <div className="relative h-56 w-full overflow-hidden bg-slate-100 dark:bg-neutral-900">
                       <Image
                         src={displayImage}
-                        alt={cause.title || cause.name || "Gift image"}
+                        alt={`${cause.title || cause.name || "Gift"} — RAKVIH Foundation donation item, Bengaluru`}
                         fill
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                       <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
-                      
+
                       <span className="absolute top-4 left-4 rounded-full bg-white/90 backdrop-blur-md px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#24310F] shadow-md dark:bg-black/90 dark:text-[#FFC107]">
                         Active Campaign
                       </span>

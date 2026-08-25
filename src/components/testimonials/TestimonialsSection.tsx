@@ -1,5 +1,7 @@
 import TestimonialCard from "./TestimonialCard";
 import { getTestimonials } from "@/lib/testimonials";
+import { CheckCircle2, ArrowRight, BookOpen, Route, Briefcase } from "lucide-react";
+import Link from "next/link";
 
 export default async function TestimonialsSection() {
   const testimonials = await getTestimonials();
@@ -9,7 +11,7 @@ export default async function TestimonialsSection() {
       className="
         relative
         overflow-hidden
-        pt-10
+        pt-16
         pb-20
         transition-colors
         duration-500
@@ -98,9 +100,46 @@ export default async function TestimonialsSection() {
       />
 
       <div className="relative z-10 mx-auto max-w-7xl px-6">
+        
+        {/* =========================================
+            NEW TOP SECTION: HOME PAGE SEO CONTENT
+            ========================================= */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-20">
+          
+          {/* Card 1: Why Choose RAKVIH */}
+          <div className="bg-white/80 dark:bg-[#111111]/80 backdrop-blur-sm p-8 rounded-3xl border border-[#798321]/20 dark:border-[#798321]/30 shadow-lg">
+            <div className="h-12 w-12 bg-[#798321]/10 dark:bg-[#798321]/20 rounded-xl flex items-center justify-center mb-6">
+              <CheckCircle2 className="text-[#798321]" size={24} />
+            </div>
+            <h3 className="text-xl font-bold text-[#798321] dark:text-white mb-4">
+              Why Students Choose RAKVIH
+            </h3>
+            <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
+              <li className="flex items-start gap-2">
+                <span className="text-[#FFC107] mt-1">✓</span>
+                Verified, shareable certificate on completion of every internship track.
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-[#FFC107] mt-1">✓</span>
+                Industry expert mentors guiding you through real, live-project work - not simulations.
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-[#FFC107] mt-1">✓</span>
+                Placement assistance and career guidance built into every program.
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-[#FFC107] mt-1">✓</span>
+                5,000+ students enrolled and 250+ active internships running at any time.
+              </li>
+            </ul>
+          </div>
 
-        {/* Heading */}
-        <div className="mb-8 text-center">
+        </div>
+
+        {/* =========================================
+            TESTIMONIALS SECTION
+            ========================================= */}
+        <div className="mb-12 text-center max-w-3xl mx-auto">
           <p
             className="
               text-[10px]
@@ -110,7 +149,7 @@ export default async function TestimonialsSection() {
               text-[#FFC107]
             "
           >
-            TESTIMONIALS
+            REAL OUTCOMES FROM REAL STUDENTS
           </p>
 
           <h2
@@ -124,8 +163,12 @@ export default async function TestimonialsSection() {
               dark:text-white
             "
           >
-            What Students Say
+            Direct Stepping Stones to MNC Placements
           </h2>
+          
+          <p className="mt-4 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+            Students like Priya Sharma (Web Development), Rahul Verma (AI & Machine Learning), and Ananya Singh (Data Science) have used RAKVIH internships as a direct stepping stone into MNC placements — read their full stories on our Success Stories page.
+          </p>
         </div>
 
         {/* Cards */}

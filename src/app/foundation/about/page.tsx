@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Heart,
@@ -18,9 +18,41 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
+// ── SEO copy (per RAKVIH SEO Content Pack, Section 11 — /foundation/about) ──
+const SEO_TITLE =
+  "About RAKVIH Foundation | Meals, Education & Animal Welfare — Bengaluru";
+const SEO_DESCRIPTION =
+  "RAKVIH Foundation delivers meals, child care, education, orphan support, animal welfare and livelihood programs across Bengaluru with 100% transparent, photo-verified impact. Learn our mission.";
+const CANONICAL_URL = "https://www.rakvihfoundation.org.in/foundation/about";
+
+// ── NGO / NonProfit schema (per Technical SEO Checklist, item 14) ──
+const ngoSchema = {
+  "@context": "https://schema.org",
+  "@type": "NGO",
+  name: "RAKVIH Foundation",
+  url: "https://www.rakvihfoundation.org.in/foundation",
+  description:
+    "RAKVIH Foundation is a registered non-profit working across India to alleviate hunger and uplift communities through food, education, healthcare and livelihood programmes.",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "238, 2nd Main, 2nd Cross, Attur Layout, Yelahanka",
+    addressLocality: "Bengaluru",
+    addressRegion: "Karnataka",
+    postalCode: "560064",
+    addressCountry: "IN",
+  },
+  areaServed: "IN",
+  knowsAbout: [
+    "child welfare NGO",
+    "animal welfare NGO Bengaluru",
+    "education sponsorship",
+    "grassroots community welfare",
+  ],
+};
+
 const serviceCategories = [
   {
-    title: "Food & Sustenance",
+    title: "Food & Sustenance Programs",
     icon: Utensils,
     description: "Ensuring no one sleeps hungry—providing nutritious meals to underprivileged humans, strays, and animals.",
     services: [
@@ -76,7 +108,9 @@ const serviceCategories = [
     ],
   },
   {
-    title: "Community & Welfare (Others)",
+    // Renamed from "Community & Welfare (Others)" to match the SEO Content
+    // Pack's Service Verticals list exactly ("Community & Welfare") — Section 11.
+    title: "Community & Welfare",
     icon: Heart,
     description: "Providing essential relief kits, medical aids, livelihood equipment, and comprehensive orphan support.",
     services: [
@@ -103,9 +137,39 @@ const coreValues = [
 export default function AboutPage() {
   const [activeCategory, setActiveCategory] = useState(0);
 
+  // Set document title + meta description since this is a client component
+  // and can't use Next.js's `metadata` export directly. If this route ever
+  // gets a server wrapper, move SEO_TITLE / SEO_DESCRIPTION into a proper
+  // `export const metadata` there instead.
+  useEffect(() => {
+    document.title = SEO_TITLE;
+
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement("meta");
+      metaDesc.setAttribute("name", "description");
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute("content", SEO_DESCRIPTION);
+
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute("href", CANONICAL_URL);
+  }, []);
+
   return (
     <div className="min-h-[100dvh] w-full bg-[#F8FAF0] text-slate-900 dark:bg-black dark:text-slate-100">
-      
+
+      {/* NGO / NonProfit schema for search rich results */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ngoSchema) }}
+      />
+
       {/* ============ HERO SECTION ============ */}
       <section className="relative overflow-hidden pt-24 pb-16 sm:pt-32 sm:pb-20 bg-gradient-to-b from-[#24310F] via-[#2F3E14] to-[#F8FAF0] text-white dark:from-black dark:via-zinc-950 dark:to-black">
         <motion.div
@@ -147,7 +211,10 @@ export default function AboutPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-200 sm:text-base"
           >
-            RAKVIH Foundation is dedicated to building sustainable futures, feeding the hungry, educating children, caring for animals, and uplifting marginalized communities across society.
+            RAKVIH Foundation is dedicated to building sustainable futures — feeding the hungry, educating children,
+caring for animals, and uplifting marginalised communities across society. Founded on the belief that
+collective empathy can solve structural disparities, we coordinate direct-impact drives spanning daily meal
+provisions, child welfare kits, educational sponsorships, and animal care.
           </motion.p>
         </div>
       </section>
@@ -166,10 +233,14 @@ export default function AboutPage() {
               <Target className="h-4 w-4" /> Our Mission & Vision
             </div>
             <h2 className="text-2xl font-extrabold text-[#24310F] dark:text-white sm:text-3xl">
-              Bridging the Gap Between Privilege and Need
+              Whats Sets Us Apart
             </h2>
             <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300 sm:text-sm">
-              Founded on the belief that collective empathy can solve structural disparities, RAKVIH Foundation coordinates direct-impact drives. From daily meal provisions and child welfare kits to educational sponsorships and animal care, our holistic initiatives cater to every tier of community wellbeing.
+              Founded on the belief that collective empathy can solve structural disparities, RAKVIH
+              Foundation coordinates direct-impact drives as a grassroots NGO in Bengaluru. From daily
+              meal provisions and child welfare kits to education sponsorship, animal welfare
+              initiatives, and orphan support, our holistic community welfare programs cater to every
+              tier of community wellbeing.
             </p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 pt-2">
               {coreValues.map((v) => (
@@ -280,21 +351,28 @@ export default function AboutPage() {
 
       {/* ============ CALL TO ACTION ============ */}
       <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-24 lg:px-8">
-        <div className="overflow-hidden rounded-3xl bg-gradient-to-r from-[#24310F] via-[#2F3E14] to-[#798321] p-8 text-center text-white shadow-xl sm:p-12">
-          <h3 className="text-2xl font-extrabold sm:text-3xl">Want to Support Our Initiatives?</h3>
-          <p className="mx-auto mt-2 max-w-xl text-xs text-slate-200 sm:text-sm leading-relaxed">
-            Whether you want to sponsor a meal, educate a child, or volunteer at our upcoming drives, every contribution counts.
-          </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <a
-              href="/foundation/contact"
-              className="inline-flex items-center gap-2 rounded-full bg-[#FFC107] px-6 py-3 text-xs font-bold text-black shadow-lg transition-transform hover:scale-105"
-            >
-              Get in Touch <ArrowRight className="h-3.5 w-3.5" />
-            </a>
-          </div>
-        </div>
-      </section>
+  <div className="overflow-hidden rounded-3xl bg-gradient-to-r from-[#24310F] via-[#2F3E14] to-[#798321] p-8 text-center text-white shadow-xl sm:p-12">
+    
+    {/* ADDED GET INVOLVED BADGE */}
+    <span className="mb-3 block text-[11px] font-bold uppercase tracking-[0.2em] text-[#FFC107]">
+      Get Involved
+    </span>
+    
+    <h3 className="text-2xl font-extrabold sm:text-3xl">Want to Support Our Initiatives?</h3>
+    <p className="mx-auto mt-2 max-w-xl text-xs text-slate-200 sm:text-sm leading-relaxed">
+      Whether you want to sponsor a meal, support a child's education, or volunteer at an upcoming drive, every
+contribution is tracked back to the person it helped.
+    </p>
+    <div className="mt-6 flex flex-wrap justify-center gap-3">
+      <a
+        href="/foundation/contact"
+        className="inline-flex items-center gap-2 rounded-full bg-[#FFC107] px-6 py-3 text-xs font-bold text-black shadow-lg transition-transform hover:scale-105"
+      >
+        Get in Touch <ArrowRight className="h-3.5 w-3.5" />
+      </a>
+    </div>
+  </div>
+</section>
 
     </div>
   );

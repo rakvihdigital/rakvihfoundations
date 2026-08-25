@@ -76,22 +76,22 @@ const steps = [
   {
     icon: ClipboardEdit,
     title: "Tell us what you need",
-    copy: "Share your child's grade, subject, and preferred schedule — takes under two minutes.",
+    copy: "Share grade, subject and preferred schedule in under two minutes.",
   },
   {
     icon: Users2,
     title: "We match a teacher",
-    copy: "Our team reviews your request and allocates a verified teacher suited to your child.",
+    copy: "Our team allocates a verified educator suited to your child.",
   },
   {
     icon: CalendarCheck2,
     title: "Classes begin",
-    copy: "Your teacher confirms days and timing, and tuition starts — home, online, or at our center.",
+    copy: "Your teacher confirms days and timing across home, online, or centre-based learning.",
   },
   {
     icon: IndianRupee,
     title: "Pay securely online",
-    copy: "Once assigned, log in anytime to check the fee and pay online. No cash handling needed.",
+    copy: "See the exact fee before you pay, with no hidden charges.",
   },
 ];
 
@@ -103,13 +103,13 @@ const trustPoints = [
   },
   {
     icon: MapPinned,
-    title: "Learn your way",
-    copy: "Choose home visits, online classes, or our learning center — whatever fits your routine.",
+    title: "Fast Allocation",
+    copy: "The average match time is 24 hours, and applying takes under two minutes.",
   },
   {
     icon: BadgeCheck,
-    title: "Transparent fees",
-    copy: "See the exact fee before you pay. No hidden charges, no surprises.",
+    title: "Quick Assignment",
+    copy: "A teacher can be assigned within a day of your request.",
   },
 ];
 
@@ -138,13 +138,13 @@ export default function TuitionPage() {
             {/* 🚀 TUITION SECTION */}
             <div>
               <span className="inline-flex items-center gap-2 rounded-full border border-[#798321]/25 bg-white/70 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-[#798321] dark:bg-white/5 dark:text-[#FFC107]">
-                For Parents
+                Verified, Fast, and Transparent
               </span>
               <h1 style={{ fontFamily: "var(--font-display)" }} className="mt-5 text-[2.5rem] font-medium leading-[1.08] tracking-tight text-[#24310F] dark:text-white sm:text-[3.25rem]">
-                Find the right <span className="italic text-[#798321] dark:text-[#FFC107]">tutor</span> for your child.
+                Find the Right <span className="italic text-[#798321] dark:text-[#FFC107]">Tutor</span> for Your Child
               </h1>
               <p className="mt-5 max-w-lg text-[17px] leading-relaxed text-gray-600 dark:text-neutral-300">
-                Tell us what your child needs. We match a verified teacher, you approve the schedule, and classes begin — at home, online, or at our center.
+                Tell RAKVIH what your child needs—subject, grade, and schedule—and we match a verified teacher within 24 hours on average. You approve the schedule, choose home visits, online classes, or our learning centre, and pay securely online with the fee shown upfront. No cash handling, no hidden charges, no guesswork.
               </p>
               <div className="mt-6">
                 <button type="button" onClick={() => goToApply("tuition")} className="rounded-xl bg-gradient-to-r from-[#798321] to-[#FFC107] px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#798321]/30 transition-transform hover:-translate-y-0.5 dark:text-black">
@@ -162,10 +162,10 @@ export default function TuitionPage() {
                 For Teachers
               </span>
               <h2 style={{ fontFamily: "var(--font-display)" }} className="mt-5 text-[2.25rem] font-medium leading-[1.08] tracking-tight text-[#24310F] dark:text-white sm:text-[2.75rem]">
-                Become a <span className="italic text-[#798321] dark:text-[#FFC107]">teacher</span> with us.
+                Grow Your <span className="italic text-[#798321] dark:text-[#FFC107]">Student Base</span>
               </h2>
               <p className="mt-5 max-w-lg text-[17px] leading-relaxed text-gray-600 dark:text-neutral-300">
-                Join our network of verified educators. Share your expertise, set your preferred teaching mode, and easily grow your student base.
+                Join RAKVIH's network of verified educators, set your preferred subjects and teaching mode, and get matched with families actively looking for a tutor like you with flexible home, online, or centre-based teaching options.
               </p>
               <div className="mt-6 flex flex-wrap items-center gap-5">
                 <button type="button" onClick={() => goToApply("teacher")} className="rounded-xl border-2 border-[#798321] bg-white px-7 py-3.5 text-sm font-bold text-[#798321] transition-all hover:-translate-y-0.5 hover:bg-[#798321]/5 dark:border-[#FFC107] dark:bg-transparent dark:text-[#FFC107] dark:hover:bg-[#FFC107]/10">
@@ -196,9 +196,9 @@ export default function TuitionPage() {
       <section id="how-it-works" className="bg-white py-20 dark:bg-black transition-colors duration-500 sm:py-28">
         <div className="mx-auto max-w-[1100px] px-6 lg:px-8">
           <div className="mx-auto max-w-xl text-center">
-            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#798321] dark:text-[#FFC107]">How it works</span>
+            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#798321] dark:text-[#FFC107]">Process</span>
             <h2 style={{ fontFamily: "var(--font-display)" }} className="mt-3 text-3xl font-medium text-[#24310F] dark:text-white sm:text-4xl">
-              From application to first class
+              For Parents: How It Works
             </h2>
           </div>
           <div className="relative mt-16 grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
@@ -223,6 +223,11 @@ export default function TuitionPage() {
       {/* ============ WHY RAKVIH ============ */}
       <section className="bg-[#F8FAF0] py-20 dark:bg-black transition-colors duration-500 sm:py-24">
         <div className="mx-auto max-w-[1100px] px-6 lg:px-8">
+          <div className="mx-auto max-w-xl text-center mb-16">
+            <h2 style={{ fontFamily: "var(--font-display)" }} className="text-3xl font-medium text-[#24310F] dark:text-white sm:text-4xl">
+              Why Parents Trust RAKVIH Tuition
+            </h2>
+          </div>
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
             {trustPoints.map((point) => {
               const Icon = point.icon;

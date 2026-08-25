@@ -12,7 +12,7 @@ export default function SuccessCard({ story }: Props) {
       className="
         flex
         flex-col
-        h-[220px]
+        min-h-[220px]
         rounded-2xl
         border
         border-[#798321]/20
@@ -36,6 +36,7 @@ export default function SuccessCard({ story }: Props) {
             key={index}
             size={14}
             className="fill-[#FFC107] text-[#FFC107]"
+            aria-hidden="true"
           />
         ))}
       </div>
@@ -51,14 +52,14 @@ export default function SuccessCard({ story }: Props) {
           line-clamp-3
         "
       >
-        "{story.review}"
+        &quot;{story.review}&quot;
       </p>
 
       <hr className="my-3 border-[#798321]/10 dark:border-neutral-800" />
 
       {/* Footer */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           {/* Profile Image */}
           {story.image ? (
             <img
@@ -67,6 +68,7 @@ export default function SuccessCard({ story }: Props) {
               className="
                 h-10
                 w-10
+                shrink-0
                 rounded-full
                 object-cover
                 border-2
@@ -82,6 +84,7 @@ export default function SuccessCard({ story }: Props) {
                 flex
                 h-10
                 w-10
+                shrink-0
                 items-center
                 justify-center
                 rounded-full
@@ -96,23 +99,23 @@ export default function SuccessCard({ story }: Props) {
           )}
 
           {/* Student Info */}
-          <div>
-            <h3 className="text-[14px] font-bold text-[#5F6E1D] dark:text-white">
+          <div className="min-w-0">
+            <h3 className="truncate text-[14px] font-bold text-[#5F6E1D] dark:text-white">
               {story.student_name}
             </h3>
 
-            <p className="text-[11px] text-gray-500 dark:text-neutral-400">
+            <p className="truncate text-[11px] text-gray-500 dark:text-neutral-400">
               {story.designation}
             </p>
 
-            <p className="text-[11px] font-semibold text-[#798321] dark:text-[#FFC107]">
+            <p className="truncate text-[11px] font-semibold text-[#798321] dark:text-[#FFC107]">
               {story.company}
             </p>
           </div>
         </div>
 
         {/* Package */}
-        <div className="text-right">
+        <div className="shrink-0 text-right">
           <h3 className="text-[16px] font-bold text-[#798321] dark:text-[#FFC107]">
             {story.package}
           </h3>

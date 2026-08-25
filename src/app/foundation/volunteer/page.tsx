@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Fraunces } from "next/font/google";
@@ -19,6 +19,12 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || "",
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 );
+
+// ── SEO copy (per RAKVIH SEO Content Pack, Section 12 — /foundation/volunteer) ──
+const SEO_TITLE = "Become a Volunteer in Bengaluru | RAKVIH Foundation";
+const SEO_DESCRIPTION =
+  "Give your time, not just your money. Join RAKVIH Foundation volunteers distributing meals, supporting children's education and running tree-planting drives.";
+const CANONICAL_URL = "https://www.rakvihfoundation.org.in/foundation/volunteer";
 
 function VolunteerFormContent() {
   const [formData, setFormData] = useState({
@@ -41,6 +47,28 @@ function VolunteerFormContent() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  // Set document title + meta description since this is a client component
+  // and can't use Next.js's `metadata` export directly.
+  useEffect(() => {
+    document.title = SEO_TITLE;
+
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement("meta");
+      metaDesc.setAttribute("name", "description");
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute("content", SEO_DESCRIPTION);
+
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute("href", CANONICAL_URL);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -120,7 +148,9 @@ function VolunteerFormContent() {
             Become a <span className="text-[#FFC107]">Volunteer</span>
           </h1>
           <p className="max-w-2xl mx-auto text-xs sm:text-sm text-slate-300 dark:text-neutral-300 leading-relaxed">
-            Register today to lend your time, skills, and passion to make a lasting difference in society.
+            Give your time, not just your money. Join RAKVIH Foundation volunteers in
+            Bengaluru distributing meals, supporting children's education, and running
+            tree-planting drives across local communities.
           </p>
         </div>
       </section>

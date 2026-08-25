@@ -19,6 +19,7 @@ const display = Fraunces({
 const quickLinks = [
   { name: "Home", href: "/foundation" },
   { name: "About Us", href: "/foundation/about" },
+  { name: "Blog", href: "/foundation/blog" },
   { name: "Causes", href: "/foundation/causes" },
   { name: "Gallery", href: "/foundation/gallery" },
   { name: "Contact", href: "/foundation/contact" },

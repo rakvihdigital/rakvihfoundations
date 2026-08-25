@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Mail,
@@ -16,6 +16,12 @@ import {
   Globe2,
   Loader2,
 } from "lucide-react";
+
+// ── SEO copy (per RAKVIH SEO Content Pack, Section 12 — /foundation/contact) ──
+const SEO_TITLE = "Contact RAKVIH Foundation | Bengaluru NGO";
+const SEO_DESCRIPTION =
+  "Reach RAKVIH Foundation for donations, volunteering or CSR partnerships. Call 85499 42525 or email rakvihfoundation@gmail.com. Response within 24–48 hours.";
+const CANONICAL_URL = "https://www.rakvihfoundation.org.in/foundation/contact";
 
 const contactDetails = [
   {
@@ -59,6 +65,28 @@ export default function ContactPage() {
     email: "",
     message: "",
   });
+
+  // Set document title + meta description since this is a client component
+  // and can't use Next.js's `metadata` export directly.
+  useEffect(() => {
+    document.title = SEO_TITLE;
+
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement("meta");
+      metaDesc.setAttribute("name", "description");
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute("content", SEO_DESCRIPTION);
+
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute("href", CANONICAL_URL);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

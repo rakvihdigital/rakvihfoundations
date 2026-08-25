@@ -85,7 +85,7 @@ export default function ProgramsSection() {
               dark:text-[#FFC107]
             "
           >
-            EXPLORE PROGRAMS
+            EXPLORE CAREER TRACKS
           </span>
 
           <h2
@@ -99,7 +99,7 @@ export default function ProgramsSection() {
               dark:text-white
             "
           >
-            Internship Programs
+            Explore Career Tracks
           </h2>
 
           <div className="mx-auto mt-3 h-1 w-16 rounded-full bg-[#798321] dark:bg-[#FFC107]" />
@@ -115,9 +115,7 @@ export default function ProgramsSection() {
               dark:text-neutral-400
             "
           >
-            Explore industry-ready internship programs with live projects,
-            expert mentorship, certifications, and placement assistance
-            designed to help you build a successful career.
+            RAKVIH's internship catalogue is built around the roles companies are actually hiring for right now. From Web Development and Full Stack Development to AI & Machine Learning, Data Science, Cloud Computing, Cyber Security, Digital Marketing, and UI/UX Design.
           </p>
 
           {/* View All Button */}

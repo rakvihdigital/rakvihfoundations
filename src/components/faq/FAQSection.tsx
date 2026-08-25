@@ -16,12 +16,9 @@ export default function FAQSection() {
         duration-500
       "
     >
-
-<div className="mx-auto max-w-7xl px-6">
+      <div className="mx-auto max-w-7xl px-6">
         {/* Heading */}
-
         <div className="mb-12 text-center">
-
           <p
             className="
               text-[11px]
@@ -32,7 +29,7 @@ export default function FAQSection() {
               text-[#FFC107]
             "
           >
-            Frequently Asked
+            INTERNSHIP FAQS
           </p>
 
           <h2
@@ -50,7 +47,7 @@ export default function FAQSection() {
               dark:text-white
             "
           >
-            Questions & Answers
+            Answers About Enrollment & Placements
           </h2>
 
           <p
@@ -67,40 +64,35 @@ export default function FAQSection() {
               dark:text-neutral-300
             "
           >
-            Find answers to the most common questions about internships,
-            certificates, placements and enrollment.
+            Find answers to common questions about RAKVIH internships, including enrollment steps, online vs offline formats, verified certification, placement assistance, and course access.
           </p>
-
         </div>
 
-    {/* FAQ List */}
+        {/* FAQ List */}
+        <div className="grid lg:grid-cols-2 gap-x-4 gap-y-5 items-start">
+          {/* Left Column */}
+          <div className="space-y-5 w-full">    
+            {faqs.slice(0, 4).map((faq) => (
+              <FAQItem
+                key={faq.id}
+                question={faq.question}
+                answer={faq.answer}
+              />
+            ))}
+          </div>
 
-<div className="grid lg:grid-cols-2 gap-x-4 gap-y-5 items-start">
-  {/* Left Column */}
-<div className="space-y-5 w-full">    {faqs.slice(0, 4).map((faq) => (
-      <FAQItem
-        key={faq.id}
-        question={faq.question}
-        answer={faq.answer}
-      />
-    ))}
-  </div>
-
-  {/* Right Column */}
-  <div className="space-y-5">
-    {faqs.slice(4).map((faq) => (
-      <FAQItem
-        key={faq.id}
-        question={faq.question}
-        answer={faq.answer}
-      />
-    ))}
-  </div>
-
-</div>
-
+          {/* Right Column */}
+          <div className="space-y-5">
+            {faqs.slice(4).map((faq) => (
+              <FAQItem
+                key={faq.id}
+                question={faq.question}
+                answer={faq.answer}
+              />
+            ))}
+          </div>
+        </div>
       </div>
-
     </section>
   );
 }

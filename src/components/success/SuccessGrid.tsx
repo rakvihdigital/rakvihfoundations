@@ -80,7 +80,7 @@ export default function SuccessGrid({ stories }: Props) {
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-[1450px] px-6">
+      <div className="relative z-10 mx-auto max-w-[1450px] px-4 sm:px-6">
 
         {/* Heading */}
 
@@ -109,7 +109,7 @@ export default function SuccessGrid({ stories }: Props) {
               dark:text-[#FFC107]
             "
           >
-            Student Testimonials
+            Real Students, Real Placements
           </span>
 
           <h2
@@ -125,7 +125,7 @@ export default function SuccessGrid({ stories }: Props) {
               dark:text-white
             "
           >
-            What Our Students Say
+            Featured Placements
           </h2>
 
           <p
@@ -142,9 +142,7 @@ export default function SuccessGrid({ stories }: Props) {
               dark:text-neutral-300
             "
           >
-            Hear inspiring stories from students who transformed their careers
-            through internships, live projects, expert mentorship and
-            industry-ready training at RAKVIH.
+            With a 98% placement rate, 10,000+ students trained, and 500+ hiring partners, these are outcomes you can verify — not marketing claims.
           </p>
 
         </div>
@@ -156,10 +154,10 @@ export default function SuccessGrid({ stories }: Props) {
 
           <div
             className="
-              h-[82vh]
-              overflow-y-auto
+              xl:h-[82vh]
+              xl:overflow-y-auto
               scrollbar-hide
-              pr-2
+              xl:pr-2
 
               grid
               gap-5
@@ -268,11 +266,11 @@ export default function SuccessGrid({ stories }: Props) {
 
           <div
             className="
-              sticky
-              top-24
+              xl:sticky
+              xl:top-24
               self-start
 
-              h-[82vh]
+              xl:h-[82vh]
 
               flex
               items-start

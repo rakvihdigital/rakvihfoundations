@@ -23,6 +23,9 @@ export default function ContactHero() {
           >
             <span className="text-[#FFD54F]">Contact</span>{" "}
             <span className="text-white">Us</span>
+            <span className="mt-2 block text-lg font-medium text-white/90 md:text-xl">
+              We&apos;re Here to Help With Your Internship Journey
+            </span>
           </motion.h1>
 
           {/* Underline */}
@@ -42,7 +45,7 @@ export default function ContactHero() {
           >
             Whether you have questions about internships, placement
             assistance, certifications, or career opportunities, our
-            dedicated team is here to help. Reach out today and we'll
+            dedicated team is here to help. Reach out today and we&apos;ll
             respond as quickly as possible.
           </motion.p>
         </div>

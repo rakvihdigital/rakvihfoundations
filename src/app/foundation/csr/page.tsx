@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Building2,
@@ -13,6 +13,12 @@ import {
   Send,
   Loader2,
 } from "lucide-react";
+
+// ── SEO copy (per RAKVIH SEO Content Pack, Section 12 — /csr) ──
+const SEO_TITLE = "CSR Partnership India | Item-Level Impact Reporting — RAKVIH Foundation";
+const SEO_DESCRIPTION =
+  "Run your CSR budget through a model that reports back. Partner with RAKVIH Foundation for item-level impact tracking instead of a year-end summary.";
+const CANONICAL_URL = "https://www.rakvihfoundation.org.in/csr";
 
 const csrPartners = [
   {
@@ -62,6 +68,28 @@ export default function CSRPage() {
     focus_area: "Hunger Relief & Meal Distribution",
     project_details: "",
   });
+
+  // Set document title + meta description since this is a client component
+  // and can't use Next.js's `metadata` export directly.
+  useEffect(() => {
+    document.title = SEO_TITLE;
+
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement("meta");
+      metaDesc.setAttribute("name", "description");
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute("content", SEO_DESCRIPTION);
+
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute("href", CANONICAL_URL);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -139,7 +167,10 @@ export default function CSRPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-200 sm:text-base"
           >
-            We collaborate with forward-thinking enterprises to execute high-impact CSR initiatives in healthcare, hunger relief, education, and environmental sustainability.
+            Run your CSR budget through a model that reports back. As a CSR partner NGO in
+            Bengaluru, we deliver high-impact initiatives in healthcare, hunger relief,
+            education, and environmental sustainability — with item-level impact tracking
+            instead of a generic year-end summary.
           </motion.p>
 
           {/* Mini Feature Highlights */}

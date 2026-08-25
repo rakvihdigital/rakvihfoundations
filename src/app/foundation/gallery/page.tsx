@@ -19,6 +19,23 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 );
 
+// ── SEO copy (per RAKVIH SEO Content Pack, Section 12 — /foundation/gallery) ──
+const SEO_TITLE = "Photo & Video Proof of Impact | RAKVIH Foundation Gallery";
+const SEO_DESCRIPTION =
+  "See real photos and videos from RAKVIH Foundation's meal drives, education support and community events across Bengaluru and beyond.";
+const CANONICAL_URL = "https://www.rakvihfoundation.org.in/foundation/gallery";
+
+// Builds a descriptive, keyword-rich alt string instead of the bare title,
+// e.g. "Thaali Meal Drive — RAKVIH Foundation, Yelahanka, Bengaluru"
+// (per pack guidance: "Volunteers distributing thaali meals in Yelahanka, Bengaluru").
+function buildAlt(item: any) {
+  const title = item?.title?.trim();
+  const category = item?.category?.trim();
+  if (!title) return "RAKVIH Foundation community impact photo, Yelahanka, Bengaluru";
+  const context = category ? `${category} — ` : "";
+  return `${context}${title} — RAKVIH Foundation, Yelahanka, Bengaluru`;
+}
+
 export default function GalleryPage() {
   const [galleryItems, setGalleryItems] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
@@ -26,6 +43,28 @@ export default function GalleryPage() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [activeImage, setActiveImage] = useState<any | null>(null);
+
+  // Set document title + meta description since this is a client component
+  // and can't use Next.js's `metadata` export directly.
+  useEffect(() => {
+    document.title = SEO_TITLE;
+
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement("meta");
+      metaDesc.setAttribute("name", "description");
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute("content", SEO_DESCRIPTION);
+
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute("href", CANONICAL_URL);
+  }, []);
 
   useEffect(() => {
     async function fetchGalleryData() {
@@ -119,7 +158,8 @@ export default function GalleryPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-200 sm:text-base dark:text-neutral-300"
           >
-            A visual journey through our community service, drives, camps, and the smiling faces we empower every single day.
+            Real photo and video proof of impact — meal drives, education support, and
+            community events from RAKVIH Foundation across Bengaluru and beyond.
           </motion.p>
         </div>
       </section>
@@ -202,7 +242,7 @@ export default function GalleryPage() {
                   <div className="relative h-64 w-full overflow-hidden bg-slate-100 dark:bg-neutral-900">
                     <Image
                       src={item.image_url}
-                      alt={item.title || "Gallery image"}
+                      alt={buildAlt(item)}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -256,7 +296,7 @@ export default function GalleryPage() {
               <div className="relative h-[60vh] sm:h-[70vh] w-full bg-black">
                 <Image
                   src={activeImage.image_url}
-                  alt={activeImage.title || "Popup image"}
+                  alt={buildAlt(activeImage)}
                   fill
                   sizes="(max-width: 768px) 100vw, 1200px"
                   className="object-contain p-2"

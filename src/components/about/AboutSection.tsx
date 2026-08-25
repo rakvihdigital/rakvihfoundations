@@ -15,7 +15,9 @@ export default function AboutSection() {
       className="
         relative
         overflow-hidden
-        py-20
+        py-12
+        sm:py-16
+        lg:py-20
         transition-all
         duration-500
 
@@ -92,8 +94,12 @@ export default function AboutSection() {
           grid
           max-w-7xl
           items-center
-          gap-16
-          px-6
+          gap-10
+          sm:gap-12
+          lg:gap-16
+          px-4
+          sm:px-6
+          lg:px-6
 
           lg:grid-cols-2
         "
@@ -127,7 +133,7 @@ export default function AboutSection() {
               dark:text-white
             "
           >
-            Who We Are
+            Bridging Academic Knowledge and Industry Excellence
           </h2>
 
           <p
@@ -141,9 +147,7 @@ export default function AboutSection() {
               dark:text-gray-300
             "
           >
-            RAKVIH Foundation was established with a mission to
-            democratize quality technical education and career
-            opportunities for students across India.
+            RAKVIH Foundation was built to solve one specific problem: the gap between what students learn in a classroom and what employers actually expect on day one.
           </p>
 
           <p
@@ -157,9 +161,7 @@ export default function AboutSection() {
               dark:text-gray-400
             "
           >
-            We bridge the gap between academics and industry by
-            providing structured internships, live projects,
-            mentorship, certifications and placement support.
+            We close that gap with structured internships, live industry projects, one-on-one mentorship, recognised certifications, and dedicated placement support delivered through a transparent, six-step onboarding journey with a 98% success rate among enrolled students.
           </p>
 
           {/* Button */}
@@ -201,7 +203,7 @@ export default function AboutSection() {
           >
             Explore Programs
 
-            <ArrowRight size={18} />
+            <ArrowRight size={18} aria-hidden="true" />
           </Link>
 
         </div>
@@ -264,7 +266,7 @@ export default function AboutSection() {
                 dark:group-hover:text-black
               "
             >
-              <Target size={28} />
+              <Target size={28} aria-hidden="true" />
             </div>
 
             <h3
@@ -291,8 +293,7 @@ export default function AboutSection() {
                 dark:text-gray-300
               "
             >
-              Empower students with industry-relevant skills,
-              internships and career opportunities.
+              To empower students with industry-relevant skills, hands-on internships, and genuine career opportunities not just theoretical coursework.
             </p>
 
           </div>
@@ -352,7 +353,7 @@ export default function AboutSection() {
                 dark:group-hover:text-black
               "
             >
-              <Globe size={28} />
+              <Globe size={28} aria-hidden="true" />
             </div>
 
             <h3
@@ -379,8 +380,7 @@ export default function AboutSection() {
                 dark:text-gray-300
               "
             >
-              Become India's leading internship platform creating
-              future-ready professionals.
+              To become India's leading internship platform, producing future-ready professionals equipped for the jobs companies are hiring for today.
             </p>
 
           </div>
@@ -439,7 +439,7 @@ export default function AboutSection() {
                 dark:group-hover:text-black
               "
             >
-              <Star size={28} />
+              <Star size={28} aria-hidden="true" />
             </div>
 
             <h3
@@ -452,7 +452,7 @@ export default function AboutSection() {
                 dark:text-white
               "
             >
-              Why RAKVIH
+              Why Students Choose RAKVIH
             </h3>
 
             <p
@@ -466,8 +466,7 @@ export default function AboutSection() {
                 dark:text-gray-300
               "
             >
-              Live projects, experienced mentors, certifications
-              and excellent placement assistance.
+              Live projects instead of static tutorials, experienced industry mentors instead of pre-recorded lectures, verified certifications, and placement assistance.
             </p>
 
           </div>
@@ -527,7 +526,7 @@ export default function AboutSection() {
                 dark:group-hover:text-black
               "
             >
-              <Heart size={28} />
+              <Heart size={28} aria-hidden="true" />
             </div>
 
             <h3
@@ -554,8 +553,7 @@ export default function AboutSection() {
                 dark:text-gray-300
               "
             >
-              Integrity, innovation, excellence and a student-first
-              approach in everything we do.
+              Integrity, innovation, excellence, and a student-first approach guide every program we design and every mentor we onboard.
             </p>
 
           </div>

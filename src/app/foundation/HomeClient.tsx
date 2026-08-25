@@ -107,7 +107,7 @@ const transparencyPillars = [
 const faqs = [
   {
     q: "Who is Rakvih Foundation?",
-    a: "Rakvih Foundation is a registered non-profit working across India to alleviate hunger and uplift communities through food, education, healthcare, and livelihood programmes. So far we've served 48,200+ meals and worked with 3,150+ families across 9 cities, with 210 active volunteers on the ground.",
+    a: "Rakvih Foundation is a registered non-profit working across India to alleviate hunger and uplift communities through food, education, healthcare, and livelihood programmes. So far we've served 48,200+ meals and worked with 3,150+ families across 9 cities, with 210 active volunteers.",
   },
   {
     q: "Why donate to Rakvih Foundation?",
@@ -230,7 +230,7 @@ export default function HomeClient({ causes, gallery }: Props) {
             transition={{ duration: 0.6 }}
             className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#FFC107]"
           >
-            Direct giving, item by item
+            Direct, item-level Giving
           </motion.p>
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
@@ -247,8 +247,9 @@ export default function HomeClient({ causes, gallery }: Props) {
             transition={{ duration: 0.7, delay: 0.2 }}
             className="mt-5 max-w-xl text-sm text-white/85 sm:text-base"
           >
-            We don't ask you to give to a fund. You choose the meal, the schoolbook, or
-            the checkup — see exactly what it costs, and know it reached someone.
+            RAKVIH Foundation doesn't ask you to give to a vague fund. You choose exactly what you're funding — a
+meal, a schoolbook, a health checkup — see its exact cost, and get proof it reached someone. It's a
+slower way to run a non-profit, and we think it's the only honest one.
           </motion.p>
 
           <motion.div
@@ -314,11 +315,11 @@ export default function HomeClient({ causes, gallery }: Props) {
                 Impact Passbook
               </span>
               <h2 className="text-lg font-bold text-[#1C2410] dark:text-white" style={{ fontFamily: "var(--font-display)" }}>
-                What your giving has done so far
+                Our Impact So Far
               </h2>
             </div>
             <span className="hidden items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 sm:inline-flex">
-              <ShieldCheck size={12} /> Audited FY 24–25
+              <ShieldCheck size={12} /> Audited FY 25–26
             </span>
           </div>
 
@@ -396,14 +397,9 @@ export default function HomeClient({ causes, gallery }: Props) {
               We got tired of vague donation buttons.
             </h2>
             <p className="mt-5 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-              Rakvih Foundation began with a simple frustration: giving money and never
-              knowing where it went. So we built something narrower on purpose — every
-              cause is broken down into priced, individual items. When you give, you're
-              not funding an initiative. You're feeding one more person, buying one more
-              schoolbook, covering one more checkup.
-            </p>
-            <p className="mt-4 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-              It's slower to scale this way. We think it's worth it.
+              RAKVIH Foundation began with a simple frustration: giving money and never knowing where it went. So
+every cause here is broken into priced, individual items — when you give, you're feeding one more person
+or buying one more schoolbook, not funding an abstract initiative.
             </p>
             <Link
               href="/foundation/causes"
@@ -433,7 +429,7 @@ export default function HomeClient({ causes, gallery }: Props) {
               className="mt-3 text-3xl font-semibold text-[#1C2410] dark:text-white sm:text-4xl"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              Four causes, one clear rule: you see the cost before you give.
+              Four causes, one clear rule
             </h2>
           </motion.div>
 
@@ -620,6 +616,9 @@ export default function HomeClient({ causes, gallery }: Props) {
           >
             Our Commitment to Transparency
           </h2>
+          <br />
+          <p>real,
+traceable proof of where your contribution went, not a year-end summary PDF.</p>
         </motion.div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
@@ -766,11 +765,9 @@ export default function HomeClient({ causes, gallery }: Props) {
               className="mt-3 text-2xl font-semibold text-white sm:text-3xl"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              Run your CSR budget through a model that reports back.
+              Run your CSR budget through a model that reports back with item-level impact data instead of a generic
+annual summary. Partner with RAKVIH Foundation to give your CSR spend a verifiable trail.
             </h2>
-            <p className="mt-3 text-sm text-white/70">
-              We give partners item-level reporting, not a year-end summary PDF.
-            </p>
           </div>
           <Link
             href="/csr"

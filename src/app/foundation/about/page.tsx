@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { Fraunces } from "next/font/google";
 import {
   Heart,
   Utensils,
@@ -16,7 +17,15 @@ import {
   Target,
   ArrowRight,
   CheckCircle2,
+  Award 
 } from "lucide-react";
+
+// Setup matching website font
+const display = Fraunces({ 
+  subsets: ["latin"], 
+  weight: ["500", "600", "700", "800", "900"], 
+  variable: "--font-display" 
+});
 
 // ── SEO copy (per RAKVIH SEO Content Pack, Section 11 — /foundation/about) ──
 const SEO_TITLE =
@@ -108,8 +117,6 @@ const serviceCategories = [
     ],
   },
   {
-    // Renamed from "Community & Welfare (Others)" to match the SEO Content
-    // Pack's Service Verticals list exactly ("Community & Welfare") — Section 11.
     title: "Community & Welfare",
     icon: Heart,
     description: "Providing essential relief kits, medical aids, livelihood equipment, and comprehensive orphan support.",
@@ -137,10 +144,6 @@ const coreValues = [
 export default function AboutPage() {
   const [activeCategory, setActiveCategory] = useState(0);
 
-  // Set document title + meta description since this is a client component
-  // and can't use Next.js's `metadata` export directly. If this route ever
-  // gets a server wrapper, move SEO_TITLE / SEO_DESCRIPTION into a proper
-  // `export const metadata` there instead.
   useEffect(() => {
     document.title = SEO_TITLE;
 
@@ -162,7 +165,7 @@ export default function AboutPage() {
   }, []);
 
   return (
-    <div className="min-h-[100dvh] w-full bg-[#F8FAF0] text-slate-900 dark:bg-black dark:text-slate-100">
+    <div className={`min-h-[100dvh] w-full bg-[#F8FAF0] text-slate-900 dark:bg-black dark:text-slate-100 ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
 
       {/* NGO / NonProfit schema for search rich results */}
       <script
@@ -212,9 +215,9 @@ export default function AboutPage() {
             className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-200 sm:text-base"
           >
             RAKVIH Foundation is dedicated to building sustainable futures — feeding the hungry, educating children,
-caring for animals, and uplifting marginalised communities across society. Founded on the belief that
-collective empathy can solve structural disparities, we coordinate direct-impact drives spanning daily meal
-provisions, child welfare kits, educational sponsorships, and animal care.
+            caring for animals, and uplifting marginalised communities across society. Founded on the belief that
+            collective empathy can solve structural disparities, we coordinate direct-impact drives spanning daily meal
+            provisions, child welfare kits, educational sponsorships, and animal care.
           </motion.p>
         </div>
       </section>
@@ -271,6 +274,180 @@ provisions, child welfare kits, educational sponsorships, and animal care.
                   {tag}
                 </span>
               ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ============ LEADERSHIP & CREDENTIALS ============ */}
+      <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8 border-t border-slate-200 dark:border-zinc-800 pt-12">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-stretch">
+          
+          {/* Left Side: Our Director Profile */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="lg:col-span-4 flex"
+          >
+            <div className="w-full rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xl dark:border-zinc-800 dark:bg-[#0d0d0d] flex flex-col">
+              
+              {/* Header section remains aligned to the left */}
+              <div className="mb-6 border-b border-slate-100 pb-4 dark:border-zinc-800">
+                <div className="inline-flex items-center gap-2 rounded-full bg-[#FFC107]/10 px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#FFC107] mb-3">
+                  <Users className="h-3.5 w-3.5" /> Leadership
+                </div>
+                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white relative pl-3">
+                  <span className="absolute left-0 top-[10%] h-[80%] w-[3px] rounded-sm bg-[#FFC107]"></span>
+                  Our Director
+                </h3>
+              </div>
+              
+              {/* Content centered to fix mobile right-spacing issues */}
+              <div className="flex flex-col items-center text-center flex-1">
+                <div className="relative h-28 w-28 sm:h-32 sm:w-32 shrink-0 rounded-full bg-white ring-4 ring-[#FFC107]/40 shadow-xl mb-4">
+                  <img 
+                    src="/director1.png" 
+                    alt="Vijay Kumar" 
+                    className="h-full w-full rounded-full object-cover"
+                  />
+                </div>
+                
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-1">Vijay Kumar</h3>
+                <p className="text-xs sm:text-sm font-semibold text-[#798321] dark:text-[#FFC107] mb-4">Director & HR Strategist</p>
+                
+                {/* Multi-Social Icons Row */}
+                <div className="flex items-center justify-center gap-3 mb-6">
+                  {/* LinkedIn */}
+                  <a href="#" target="_blank" rel="noopener noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#FFC107] text-[#111] transition hover:scale-105 hover:bg-yellow-400 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                    </svg>
+                  </a>
+                  {/* Facebook */}
+                  <a href="#" target="_blank" rel="noopener noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#FFC107] text-[#111] transition hover:scale-105 hover:bg-yellow-400 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                      <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12c0-5.523-4.477-10-10-10z"/>
+                    </svg>
+                  </a>
+                  {/* Instagram */}
+                  <a href="#" target="_blank" rel="noopener noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#FFC107] text-[#111] transition hover:scale-105 hover:bg-yellow-400 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 1.76-6.985 6.138C.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.204 4.358 1.76 6.78 6.138 6.985 1.28.058 1.688.072 4.947.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-1.76 6.985-6.138.058-1.28.072-1.689.072-4.948 0-3.259-.014-3.667-.072-4.947-.203-4.358-1.76-6.78-6.138-6.985-1.28-.058-1.688-.072-4.948-.072zm0 5.838A6.162 6.162 0 1 0 12 18.162 6.162 6.162 0 0 0 12 5.838zm0 10.162A4.001 4.001 0 1 1 12 7.999a4.001 4.001 0 0 1 0 8.002zm3.963-9.525a1.44 1.44 0 1 0 0-2.881 1.44 1.44 0 0 0 0 2.881z"/>
+                    </svg>
+                  </a>
+                  {/* Google */}
+                  <a href="#" target="_blank" rel="noopener noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#FFC107] text-[#111] transition hover:scale-105 hover:bg-yellow-400 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                      <path d="M12.001 9.803v4.46h5.837c-.244 1.932-2.316 5.658-5.837 5.658-3.513 0-6.38-2.92-6.38-6.52s2.867-6.52 6.38-6.52c1.996 0 3.332.85 4.095 1.583l3.39-3.267C17.545 3.328 15.021 2 12.001 2 6.478 2 2 6.478 2 12s4.478 10 10.001 10c5.772 0 9.615-4.062 9.615-9.789 0-.663-.07-1.18-.17-1.703h-9.445z"/>
+                    </svg>
+                  </a>
+                </div>
+
+                {/* Text made slightly bigger (text-[13px]) to perfectly balance the bottom section */}
+                <p className="text-xs sm:text-[13px] leading-relaxed text-slate-600 dark:text-zinc-400 mt-auto px-2">
+                  Director, HR, HR Strategist, HR Outsourcing, Recruitment Service, Talent Acquisition, Vendor Empanelment management.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Right Side: Certifications & Credentials */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="lg:col-span-8 flex flex-col"
+          >
+            <div className="mb-6">
+              <div className="inline-flex items-center gap-2 rounded-full bg-[#798321]/10 px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107] mb-2">
+                <Award className="h-3.5 w-3.5" /> Certifications
+              </div>
+              <h2 className="text-xl font-extrabold text-[#24310F] dark:text-white sm:text-2xl mb-2">
+                Credentials & Compliance
+              </h2>
+              <p className="text-[11px] sm:text-xs text-slate-600 dark:text-zinc-400 leading-relaxed max-w-2xl">
+                We are committed to delivering quality-driven, compliant, and globally recognized solutions. Our certifications reflect our dedication to excellence and regulatory compliance.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
+              
+              {/* ISO Certification */}
+              <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-zinc-800 dark:bg-[#0d0d0d] flex flex-col items-center justify-center">
+                <div className="absolute top-0 left-0 h-1 w-0 bg-gradient-to-r from-transparent via-[#FFC107] to-transparent transition-all duration-500 group-hover:w-full"></div>
+                <div className="flex flex-col items-center text-center">
+                  <svg className="w-14 h-14 mb-3 drop-shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#FFD700" />
+                        <stop offset="50%" stopColor="#F8C210" />
+                        <stop offset="100%" stopColor="#B8860B" />
+                      </linearGradient>
+                    </defs>
+                    <path d="M25,85 L15,100 L35,92 L50,100 L65,92 L85,100 L75,85 Z" fill="#B8860B" />
+                    <circle cx="50" cy="45" r="40" fill="url(#gold)" stroke="#FFF" strokeWidth="2"/>
+                    <circle cx="50" cy="45" r="32" fill="none" stroke="#FFF" strokeWidth="1.5" strokeDasharray="4,4"/>
+                    <text x="50" y="45" fontFamily="Arial" fontSize="20" fontWeight="900" fill="#111" textAnchor="middle">ISO</text>
+                    <text x="50" y="60" fontFamily="Arial" fontSize="12" fontWeight="bold" fill="#111" textAnchor="middle">9001:2015</text>
+                  </svg>
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">ISO 9001:2015</h4>
+                  <p className="text-[10px] text-slate-500 dark:text-zinc-400">Demonstrating our commitment to maintaining an internationally recognized Quality Management System.</p>
+                </div>
+              </div>
+
+              {/* Startup India */}
+              <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-zinc-800 dark:bg-[#0d0d0d] flex flex-col items-center justify-center">
+                <div className="absolute top-0 left-0 h-1 w-0 bg-gradient-to-r from-transparent via-[#FFC107] to-transparent transition-all duration-500 group-hover:w-full"></div>
+                <div className="flex flex-col items-center text-center">
+                  <svg className="w-14 h-14 mb-3 drop-shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M25,85 L15,100 L35,92 L50,100 L65,92 L85,100 L75,85 Z" fill="#B8860B" />
+                    <circle cx="50" cy="45" r="40" fill="url(#gold)" stroke="#FFF" strokeWidth="2"/>
+                    <circle cx="50" cy="45" r="32" fill="none" stroke="#FFF" strokeWidth="1.5" strokeDasharray="4,4"/>
+                    <path d="M35,60 L45,45 L55,50 L65,30 L60,30 L55,45 L45,40 L35,55 Z" fill="#111" />
+                    <text x="50" y="28" fontFamily="Arial" fontSize="11" fontWeight="900" fill="#111" textAnchor="middle">STARTUP</text>
+                    <text x="50" y="70" fontFamily="Arial" fontSize="11" fontWeight="900" fill="#111" textAnchor="middle">INDIA</text>
+                  </svg>
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">Startup India</h4>
+                  <p className="text-[10px] text-slate-500 dark:text-zinc-400">Officially recognized under the Government of India's initiative for our innovation-driven approach.</p>
+                </div>
+              </div>
+
+              {/* IEC */}
+              <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-zinc-800 dark:bg-[#0d0d0d] flex flex-col items-center justify-center">
+                <div className="absolute top-0 left-0 h-1 w-0 bg-gradient-to-r from-transparent via-[#FFC107] to-transparent transition-all duration-500 group-hover:w-full"></div>
+                <div className="flex flex-col items-center text-center">
+                  <svg className="w-14 h-14 mb-3 drop-shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M25,85 L15,100 L35,92 L50,100 L65,92 L85,100 L75,85 Z" fill="#B8860B" />
+                    <circle cx="50" cy="45" r="40" fill="url(#gold)" stroke="#FFF" strokeWidth="2"/>
+                    <circle cx="50" cy="45" r="32" fill="none" stroke="#FFF" strokeWidth="1.5" strokeDasharray="4,4"/>
+                    <circle cx="50" cy="45" r="18" fill="none" stroke="#111" strokeWidth="2"/>
+                    <path d="M32,45 Q50,20 68,45 Q50,70 32,45 Z" fill="none" stroke="#111" strokeWidth="2"/>
+                    <line x1="32" y1="45" x2="68" y2="45" stroke="#111" strokeWidth="2"/>
+                    <text x="50" y="72" fontFamily="Arial" fontSize="14" fontWeight="900" fill="#111" textAnchor="middle">IEC</text>
+                  </svg>
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">Import Export Code</h4>
+                  <p className="text-[10px] text-slate-500 dark:text-zinc-400">Authorized to conduct international trade and global business operations through a valid IEC.</p>
+                </div>
+              </div>
+
+              {/* HIPAA */}
+              <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-zinc-800 dark:bg-[#0d0d0d] flex flex-col items-center justify-center">
+                <div className="absolute top-0 left-0 h-1 w-0 bg-gradient-to-r from-transparent via-[#FFC107] to-transparent transition-all duration-500 group-hover:w-full"></div>
+                <div className="flex flex-col items-center text-center">
+                  <svg className="w-14 h-14 mb-3 drop-shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M25,85 L15,100 L35,92 L50,100 L65,92 L85,100 L75,85 Z" fill="#B8860B" />
+                    <circle cx="50" cy="45" r="40" fill="url(#gold)" stroke="#FFF" strokeWidth="2"/>
+                    <circle cx="50" cy="45" r="32" fill="none" stroke="#FFF" strokeWidth="1.5" strokeDasharray="4,4"/>
+                    <path d="M50,20 L68,26 L65,48 C63,60 50,68 50,68 C50,68 37,60 35,48 L32,26 Z" fill="#111" />
+                    <path d="M46,35 L54,35 L54,42 L61,42 L61,48 L54,48 L54,55 L46,55 L46,48 L39,48 L39,42 L46,42 Z" fill="url(#gold)" />
+                    <text x="50" y="75" fontFamily="Arial" fontSize="12" fontWeight="900" fill="#111" textAnchor="middle">HIPAA</text>
+                  </svg>
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">HIPAA Compliance</h4>
+                  <p className="text-[10px] text-slate-500 dark:text-zinc-400">Expertise in data privacy, security, and regulatory compliance protocols.</p>
+                </div>
+              </div>
+
             </div>
           </motion.div>
         </div>
@@ -351,28 +528,27 @@ provisions, child welfare kits, educational sponsorships, and animal care.
 
       {/* ============ CALL TO ACTION ============ */}
       <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-24 lg:px-8">
-  <div className="overflow-hidden rounded-3xl bg-gradient-to-r from-[#24310F] via-[#2F3E14] to-[#798321] p-8 text-center text-white shadow-xl sm:p-12">
-    
-    {/* ADDED GET INVOLVED BADGE */}
-    <span className="mb-3 block text-[11px] font-bold uppercase tracking-[0.2em] text-[#FFC107]">
-      Get Involved
-    </span>
-    
-    <h3 className="text-2xl font-extrabold sm:text-3xl">Want to Support Our Initiatives?</h3>
-    <p className="mx-auto mt-2 max-w-xl text-xs text-slate-200 sm:text-sm leading-relaxed">
-      Whether you want to sponsor a meal, support a child's education, or volunteer at an upcoming drive, every
-contribution is tracked back to the person it helped.
-    </p>
-    <div className="mt-6 flex flex-wrap justify-center gap-3">
-      <a
-        href="/foundation/contact"
-        className="inline-flex items-center gap-2 rounded-full bg-[#FFC107] px-6 py-3 text-xs font-bold text-black shadow-lg transition-transform hover:scale-105"
-      >
-        Get in Touch <ArrowRight className="h-3.5 w-3.5" />
-      </a>
-    </div>
-  </div>
-</section>
+        <div className="overflow-hidden rounded-3xl bg-gradient-to-r from-[#24310F] via-[#2F3E14] to-[#798321] p-8 text-center text-white shadow-xl sm:p-12">
+          
+          <span className="mb-3 block text-[11px] font-bold uppercase tracking-[0.2em] text-[#FFC107]">
+            Get Involved
+          </span>
+          
+          <h3 className="text-2xl font-extrabold sm:text-3xl">Want to Support Our Initiatives?</h3>
+          <p className="mx-auto mt-2 max-w-xl text-xs text-slate-200 sm:text-sm leading-relaxed">
+            Whether you want to sponsor a meal, support a child's education, or volunteer at an upcoming drive, every
+            contribution is tracked back to the person it helped.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <a
+              href="/foundation/contact"
+              className="inline-flex items-center gap-2 rounded-full bg-[#FFC107] px-6 py-3 text-xs font-bold text-black shadow-lg transition-transform hover:scale-105"
+            >
+              Get in Touch <ArrowRight className="h-3.5 w-3.5" />
+            </a>
+          </div>
+        </div>
+      </section>
 
     </div>
   );

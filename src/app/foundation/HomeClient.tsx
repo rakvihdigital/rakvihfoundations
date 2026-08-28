@@ -15,13 +15,13 @@ import {
   ArrowRight,
   ArrowUpRight,
   Quote,
-  ShieldCheck,
-  HeartHandshake,
   Camera,
   Video,
   BadgeCheck,
   ChevronDown,
   HandHeart,
+  MapPin,
+  HeartHandshake
 } from "lucide-react";
 
 type CauseCategory = {
@@ -62,10 +62,9 @@ const slides = [
 const causeIcons = [UtensilsCrossed, GraduationCap, HeartPulse, Users, HeartHandshake];
 
 const passbook = [
-  { label: "Meals served", value: "48,200+" },
-  { label: "Families supported", value: "3,150+" },
-  { label: "Active volunteers", value: "210" },
-  { label: "Cities reached", value: "9" },
+  { label: "Meals served", value: "400+" },
+  { label: "Active volunteers", value: "10" },
+  { label: "Cities reached", value: "1", highlight: "Bangalore" },
 ];
 
 const steps = [
@@ -107,7 +106,7 @@ const transparencyPillars = [
 const faqs = [
   {
     q: "Who is Rakvih Foundation?",
-    a: "Rakvih Foundation is a registered non-profit working across India to alleviate hunger and uplift communities through food, education, healthcare, and livelihood programmes. So far we've served 48,200+ meals and worked with 3,150+ families across 9 cities, with 210 active volunteers.",
+    a: "Rakvih Foundation is a registered non-profit working to alleviate hunger and uplift communities through food, education, healthcare, and livelihood programmes. So far we've served 48,200+ meals across the inner city of Bangalore, with 10 active volunteers.",
   },
   {
     q: "Why donate to Rakvih Foundation?",
@@ -284,46 +283,30 @@ slower way to run a non-profit, and we think it's the only honest one.
             ))}
           </div>
         </div>
-
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.7, delay: 0.5 }}
-          className="absolute bottom-10 right-6 z-10 hidden max-w-[220px] rounded-2xl border border-white/20 bg-white/10 p-4 text-white backdrop-blur-md sm:block lg:right-12"
-        >
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#FFC107]">Today's cost</span>
-          <p className="mt-1 text-2xl font-bold" style={{ fontFamily: "var(--font-display)" }}>
-            ₹90
-          </p>
-          <p className="mt-1 text-[11px] text-white/70">feeds one person, one meal, fully traceable.</p>
-        </motion.div>
       </section>
 
-      {/* Impact Passbook Strip */}
-      <section className="relative z-20 -mt-10 px-4 sm:px-6 lg:px-8">
+      {/* Impact Passbook Strip - PERFECTLY SNUG */}
+      <section className="relative z-20 -mt-8 px-4 sm:px-6 lg:px-8">
         <motion.div
           variants={fadeInUp}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "0px" }}
           transition={{ duration: 0.6 }}
-          className="mx-auto max-w-6xl rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 sm:p-8"
+          // 1. CHANGED: max-w-3xl is now max-w-fit to remove empty side space, and added sm:px-12 for perfect padding
+          className="mx-auto max-w-fit rounded-3xl border border-slate-200 bg-white p-5 px-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 sm:px-12 sm:py-6"
         >
-          <div className="mb-6 flex items-center justify-between border-b border-dashed border-slate-200 pb-4 dark:border-zinc-800">
-            <div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
-                Impact Passbook
-              </span>
-              <h2 className="text-lg font-bold text-[#1C2410] dark:text-white" style={{ fontFamily: "var(--font-display)" }}>
-                Our Impact So Far
-              </h2>
-            </div>
-            <span className="hidden items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 sm:inline-flex">
-              <ShieldCheck size={12} /> Audited FY 25–26
+          <div className="mb-6 flex flex-col items-center justify-center border-b border-dashed border-slate-200 pb-4 text-center dark:border-zinc-800">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+              Impact Passbook
             </span>
+            <h2 className="text-lg font-bold text-[#1C2410] dark:text-white" style={{ fontFamily: "var(--font-display)" }}>
+              Our Impact So Far
+            </h2>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-4">
+          {/* 2. CHANGED: sm:gap-16 is now sm:gap-10 to bring the numbers slightly closer together */}
+          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
             {passbook.map((row, i) => (
               <motion.div
                 key={row.label}
@@ -332,17 +315,24 @@ slower way to run a non-profit, and we think it's the only honest one.
                 whileInView="visible"
                 viewport={viewportOnce}
                 transition={{ duration: 0.5, delay: i * 0.08 }}
-                className="flex flex-col"
+                className="flex flex-col items-center text-center"
               >
                 <span className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
                   {row.label}
                 </span>
-                <span
-                  className="mt-1 text-2xl font-bold text-[#798321] dark:text-[#FFC107] sm:text-3xl"
-                  style={{ fontFamily: "var(--font-display)" }}
-                >
-                  {row.value}
-                </span>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span
+                    className="text-2xl font-bold text-[#798321] dark:text-[#FFC107] sm:text-3xl"
+                    style={{ fontFamily: "var(--font-display)" }}
+                  >
+                    {row.value}
+                  </span>
+                  {row.highlight && (
+                    <span className="inline-flex items-center rounded-full bg-[#798321]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107]">
+                      {row.highlight}
+                    </span>
+                  )}
+                </div>
               </motion.div>
             ))}
           </div>
@@ -353,14 +343,13 @@ slower way to run a non-profit, and we think it's the only honest one.
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 overflow-hidden">
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2">
           
-          {/* BULLETPROOF CUSTOM MOTION */}
+          {/* BULLETPROOF CUSTOM MOTION - Adjusted aspect ratio to hug the text perfectly */}
           <motion.div
             initial={{ opacity: 0, x: -50, filter: "blur(8px)" }}
             whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
             viewport={{ once: true, margin: "-30px" }}
             transition={{ duration: 1.0, ease: "easeOut" }}
-            // Added w-full so it properly expands inside the grid column
-            className="relative w-full aspect-[4/5] overflow-hidden rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)]"
+            className="relative w-full aspect-[4/3] overflow-hidden rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)]"
           >
             <motion.div
               initial={{ scale: 1.2 }}
@@ -527,6 +516,40 @@ or buying one more schoolbook, not funding an abstract initiative.
             </motion.div>
           ))}
         </div>
+      </section>
+
+      {/* Inner City Focus Callout - PERFECTLY SNUG */}
+      <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8 overflow-hidden">
+        <motion.div
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          transition={{ duration: 0.6 }}
+          // CHANGED: Added `mx-auto max-w-fit pr-12` so the card shrink-wraps and stays perfectly centered!
+          className="relative mx-auto max-w-fit flex flex-col items-start justify-between gap-6 overflow-hidden rounded-3xl border border-[#798321]/20 bg-white p-8 shadow-sm sm:flex-row sm:items-center sm:p-10 sm:pr-12 dark:border-zinc-800 dark:bg-zinc-900"
+        >
+          <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-[#798321]/5 blur-3xl dark:bg-[#FFC107]/5" />
+          <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#798321]/10 text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107]">
+              <MapPin size={28} />
+            </div>
+            <div className="max-w-xl">
+              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#798321] dark:text-[#FFC107]">
+                Our Deep Focus
+              </span>
+              <h2
+                className="mt-2 text-2xl font-semibold text-[#1C2410] dark:text-white sm:text-3xl"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                We serve the inner city of Bangalore.
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                We believe in establishing deep, measurable impact over spreading ourselves too thin. Right now, 100% of our efforts are entirely focused on serving the inner city of Bangalore—ensuring every contribution brings concentrated change where our community needs it most.
+              </p>
+            </div>
+          </div>
+        </motion.div>
       </section>
 
       {/* Gallery Preview */}
@@ -699,30 +722,28 @@ traceable proof of where your contribution went, not a year-end summary PDF.</p>
         </motion.div>
       </section>
 
-      {/* Become a Volunteer */}
+      {/* Combined Get Involved & CSR Section */}
       <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8 overflow-hidden">
         <motion.div
-          variants={fadeInLeft}
+          variants={fadeInUp}
           initial="hidden"
           whileInView="visible"
           viewport={viewportOnce}
           transition={{ duration: 0.7 }}
-          className="relative overflow-hidden rounded-3xl bg-[#798321] p-8 sm:p-12"
+          className="grid grid-cols-1 overflow-hidden rounded-3xl md:grid-cols-2"
         >
-          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10" />
-          <div className="pointer-events-none absolute -bottom-20 right-24 h-40 w-40 rounded-full bg-[#FFC107]/20" />
-
-          <div className="relative grid grid-cols-1 items-center gap-8 lg:grid-cols-[auto,1fr,auto]">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 text-white">
-              <HandHeart size={26} />
-            </div>
-
-            <div className="max-w-2xl">
+          {/* Volunteer Half */}
+          <div className="relative flex flex-col items-start justify-between bg-[#798321] p-8 sm:p-10">
+            <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
+            <div className="relative z-10 mb-8">
+              <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white">
+                <HandHeart size={24} />
+              </div>
               <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#FFC107]">
-                Give your time, not just your money
+                Give your time
               </span>
               <h2
-                className="mt-3 text-2xl font-semibold text-white sm:text-3xl"
+                className="mt-2 text-2xl font-semibold text-white sm:text-3xl"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 Become a Volunteer
@@ -730,142 +751,163 @@ traceable proof of where your contribution went, not a year-end summary PDF.</p>
               <p className="mt-3 text-sm leading-relaxed text-white/80">
                 We invite you to engage with us and support our mission to impact our
                 community positively. Your involvement helps us provide nutritious meals
-                to the homeless, distribute essential items like eggs and milk to needy
-                families, support children's education, aid young hospital patients,
-                donate blankets during cold weather, and organise tree-planting events
-                for a greener future. Get involved today and make a difference.
+                to the homeless, distribute essential items, support education, and organise
+                tree-planting events for a greener future.
               </p>
             </div>
-
+            
             <Link
               href="/foundation/volunteer"
-              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#FFC107] px-6 py-3.5 text-sm font-bold text-[#1C2410] shadow-xl transition hover:bg-white"
+              className="relative z-10 inline-flex items-center gap-2 rounded-full bg-[#FFC107] px-6 py-3.5 text-sm font-bold text-[#1C2410] shadow-xl transition hover:bg-white"
             >
-              Become a Volunteer <ArrowRight size={16} />
+              Join Our Team <ArrowRight size={16} />
             </Link>
           </div>
-        </motion.div>
-      </section>
 
-      {/* CSR Strip */}
-      <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8 overflow-hidden">
-        <motion.div
-          variants={fadeInRight}
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewportOnce}
-          transition={{ duration: 0.7 }}
-          className="flex flex-col items-start justify-between gap-6 rounded-3xl bg-[#1C2410] p-8 sm:flex-row sm:items-center sm:p-12"
-        >
-          <div className="max-w-lg">
-            <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#FFC107]">
-              For companies
-            </span>
-            <h2
-              className="mt-3 text-2xl font-semibold text-white sm:text-3xl"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              Run your CSR budget through a model that reports back with item-level impact data instead of a generic
-annual summary. Partner with RAKVIH Foundation to give your CSR spend a verifiable trail.
-            </h2>
-          </div>
-          <Link
-            href="/csr"
-            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#FFC107] px-6 py-3.5 text-sm font-bold text-[#1C2410] shadow-xl transition hover:bg-white"
-          >
-            Propose a Partnership <ArrowRight size={16} />
-          </Link>
-        </motion.div>
-      </section>
-
-      {/* FAQ */}
-      <section className="bg-white pt-14 pb-16 dark:bg-zinc-950 overflow-hidden">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportOnce}
-            transition={{ duration: 0.6 }}
-            className="mb-8 text-center"
-          >
-            <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#798321] dark:text-[#FFC107]">
-              Questions
-            </span>
-            <h2
-              className="mt-3 text-3xl font-semibold text-[#1C2410] dark:text-white sm:text-4xl"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              Frequently Asked Questions
-            </h2>
-            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
-              Everything you need to know about donating to Rakvih Foundation.
-            </p>
-          </motion.div>
-
-          <div className="space-y-3">
-            {faqs.map((faq, i) => {
-              const isOpen = openFaq === i;
-              return (
-                <motion.div
-                  key={faq.q}
-                  variants={i % 2 === 0 ? fadeInLeft : fadeInRight}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={viewportOnce}
-                  transition={{ duration: 0.4, delay: (i % 5) * 0.05 }}
-                  className="overflow-hidden rounded-2xl border border-slate-200 bg-[#F8FAF0] dark:border-zinc-800 dark:bg-zinc-900"
-                >
-                  <button
-                    onClick={() => setOpenFaq(isOpen ? null : i)}
-                    aria-expanded={isOpen}
-                    className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
-                  >
-                    <span className="text-sm font-bold text-[#1C2410] dark:text-white">
-                      {faq.q}
-                    </span>
-                    <ChevronDown
-                      size={18}
-                      className={`shrink-0 text-[#798321] transition-transform duration-300 dark:text-[#FFC107] ${
-                        isOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-                  <AnimatePresence initial={false}>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className="overflow-hidden"
-                      >
-                        <p className="px-5 pb-5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                          {faq.a}
-                        </p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              );
-            })}
-          </div>
-
-          <motion.div 
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportOnce}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-8 text-center"
-          >
+          {/* CSR Half */}
+          <div className="relative flex flex-col items-start justify-between bg-[#1C2410] p-8 sm:p-10">
+            <div className="pointer-events-none absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-[#FFC107]/10" />
+            <div className="relative z-10 mb-8">
+              <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 text-[#FFC107]">
+                <Users size={24} />
+              </div>
+              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#FFC107]">
+                For companies
+              </span>
+              <h2
+                className="mt-2 text-2xl font-semibold text-white sm:text-3xl"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                Corporate Partnerships
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-white/70">
+                Run your CSR budget through a model that reports back with item-level impact data instead of a generic
+                annual summary. Partner with RAKVIH Foundation to give your CSR spend a verifiable trail.
+              </p>
+            </div>
             <Link
-              href="/foundation/donate"
-              className="inline-flex items-center gap-2 rounded-full bg-[#798321] px-6 py-3.5 text-sm font-bold text-white shadow-xl transition hover:bg-[#647019] dark:bg-[#FFC107] dark:text-[#1C2410] dark:hover:bg-white"
+              href="/csr"
+              className="relative z-10 inline-flex items-center gap-2 rounded-full bg-white/10 px-6 py-3.5 text-sm font-bold text-white shadow-xl backdrop-blur-sm transition hover:bg-white hover:text-[#1C2410]"
             >
-              Donate Now <Heart size={16} />
+              Propose a Partnership <ArrowRight size={16} />
             </Link>
-          </motion.div>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* FAQ - TWO COLUMN DESKTOP LAYOUT */}
+      <section className="bg-white pt-14 pb-16 dark:bg-zinc-950 overflow-hidden">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 items-start gap-12 lg:grid-cols-2 lg:gap-16">
+            
+            {/* Left Column: FAQ Content */}
+            <div>
+              <motion.div
+                variants={fadeInUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={viewportOnce}
+                transition={{ duration: 0.6 }}
+                className="mb-8"
+              >
+                <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#798321] dark:text-[#FFC107]">
+                  Questions
+                </span>
+                <h2
+                  className="mt-3 text-3xl font-semibold text-[#1C2410] dark:text-white sm:text-4xl"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  Frequently Asked Questions
+                </h2>
+                <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+                  Everything you need to know about donating to Rakvih Foundation.
+                </p>
+              </motion.div>
+
+              <div className="space-y-3">
+                {faqs.map((faq, i) => {
+                  const isOpen = openFaq === i;
+                  return (
+                    <motion.div
+                      key={faq.q}
+                      variants={fadeInLeft}
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={viewportOnce}
+                      transition={{ duration: 0.4, delay: (i % 5) * 0.05 }}
+                      className="overflow-hidden rounded-2xl border border-slate-200 bg-[#F8FAF0] dark:border-zinc-800 dark:bg-zinc-900"
+                    >
+                      <button
+                        onClick={() => setOpenFaq(isOpen ? null : i)}
+                        aria-expanded={isOpen}
+                        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+                      >
+                        <span className="text-sm font-bold text-[#1C2410] dark:text-white">
+                          {faq.q}
+                        </span>
+                        <ChevronDown
+                          size={18}
+                          className={`shrink-0 text-[#798321] transition-transform duration-300 dark:text-[#FFC107] ${
+                            isOpen ? "rotate-180" : ""
+                          }`}
+                        />
+                      </button>
+                      <AnimatePresence initial={false}>
+                        {isOpen && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                            className="overflow-hidden"
+                          >
+                            <p className="px-5 pb-5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                              {faq.a}
+                            </p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              <motion.div 
+                variants={fadeInUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={viewportOnce}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="mt-8"
+              >
+                <Link
+                  href="/foundation/donate"
+                  className="inline-flex items-center gap-2 rounded-full bg-[#798321] px-6 py-3.5 text-sm font-bold text-white shadow-xl transition hover:bg-[#647019] dark:bg-[#FFC107] dark:text-[#1C2410] dark:hover:bg-white"
+                >
+                  Donate Now <Heart size={16} />
+                </Link>
+              </motion.div>
+            </div>
+
+            {/* Right Column: Image (Hidden on Mobile) */}
+            <motion.div 
+              variants={fadeInRight}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+              transition={{ duration: 0.7 }}
+              className="relative hidden lg:block h-full min-h-[500px] w-full overflow-hidden rounded-3xl"
+            >
+              <Image 
+                src="/banner4.png" 
+                alt="Rakvih Foundation Volunteers" 
+                fill 
+                className="object-cover" 
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+            </motion.div>
+
+          </div>
         </div>
       </section>
     </div>

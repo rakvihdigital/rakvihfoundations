@@ -100,6 +100,15 @@ export default function FoundationNavbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // --- HIDE NAVBAR ON ADMIN & VOLUNTEER DASHBOARDS ---
+  if (
+    pathname.includes("/foundation/volunteer/dashboard") || 
+    pathname.includes("/adminfoundations")
+  ) {
+    return null; 
+  }
+  // ---------------------------------------------------
+
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light");
   };

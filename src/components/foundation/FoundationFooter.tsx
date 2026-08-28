@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation"; // <-- ADDED THIS
 import Image from "next/image";
 import Link from "next/link";
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
@@ -41,6 +42,7 @@ type FocusArea = {
 };
 
 export default function FoundationFooter() {
+  const pathname = usePathname(); // <-- ADDED THIS
   const [focusAreas, setFocusAreas] = useState<FocusArea[]>([]);
 
   useEffect(() => {
@@ -70,6 +72,15 @@ export default function FoundationFooter() {
       isMounted = false;
     };
   }, []);
+
+  // --- HIDE FOOTER ON ADMIN & VOLUNTEER DASHBOARDS ---
+  if (
+    pathname.includes("/foundation/volunteer/dashboard") || 
+    pathname.includes("/adminfoundations")
+  ) {
+    return null; 
+  }
+  // ---------------------------------------------------
 
   return (
     <footer

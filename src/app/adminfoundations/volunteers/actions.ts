@@ -223,14 +223,13 @@ export async function getEventRegistrations() {
     .from("event_registrations")
     .select(`
       *,
-      volunteers ( name, email, phone ),
+      volunteers ( id, name, email, phone, display_id ),
       volunteer_events ( title, event_date )
     `)
     .order("created_at", { ascending: false });
 
   if (error) {
     console.error("Error fetching event registrations:", error.message);
-    // THIS WILL NOW SHOW THE EXACT ERROR IN YOUR ADMIN PANEL!
     throw new Error("Event Registrations DB Error: " + error.message); 
   }
   return data;

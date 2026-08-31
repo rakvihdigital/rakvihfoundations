@@ -58,7 +58,7 @@ export default function VolunteerDashboardLayout({
     { name: "History & Rewards", href: "/foundation/volunteer/dashboard/history", icon: Award },
     { name: "Achievements", href: "/foundation/volunteer/dashboard/achievements", icon: Trophy },
     { name: "Notice Board", href: "/foundation/volunteer/dashboard/announcements", icon: Bell },
-    { name: "My Profile", href: "/foundation/volunteer/dashboard/profile", icon: User },
+    { name: "My Profile & Id card", href: "/foundation/volunteer/dashboard/profile", icon: User },
   ];
 
   return (

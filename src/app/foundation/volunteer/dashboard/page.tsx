@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { 
   Clock, Calendar, Award, ArrowRight, Droplet, 
-  MapPin, BellRing, BarChart3, Megaphone, Trophy 
+  MapPin, BellRing, BarChart3, Megaphone, Trophy, BadgeCheck 
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
@@ -77,19 +77,45 @@ export default function VolunteerDashboardOverview() {
 
   // Safe name extraction to prevent crashes
   const firstName = volunteer?.name ? volunteer.name.split(" ")[0] : "Hero";
+  
+  // Get official sequential ID
+  const volunteerIdNumber = volunteer?.display_id || "Rak-PENDING";
 
   return (
     <div className="space-y-8">
       
-      {/* Greeting Header */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
-          Welcome back, {firstName}! 👋
-        </h1>
-        <p className="mt-2 text-sm text-slate-500 dark:text-neutral-400">
-          Thank you for dedicating your time to RAKVIH Foundation. Here is your impact summary.
-        </p>
-      </motion.div>
+      {/* Greeting Header & ID Download Button */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
+            Welcome back, {firstName}! 👋
+          </h1>
+          <div className="mt-2.5 flex flex-wrap items-center gap-3">
+            {/* New Official ID Badge */}
+            <span className="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1 text-[10px] font-mono font-bold text-slate-700 uppercase tracking-widest dark:bg-zinc-800 dark:text-zinc-300">
+              ID: {volunteerIdNumber}
+            </span>
+            <p className="text-sm text-slate-500 dark:text-neutral-400">
+              Thank you for dedicating your time to RAKVIH Foundation.
+            </p>
+          </div>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }} 
+          animate={{ opacity: 1, scale: 1 }} 
+          transition={{ delay: 0.1 }}
+          className="shrink-0"
+        >
+          <Link 
+            href="/foundation/volunteer/dashboard/profile"
+            className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-6 py-3 text-xs font-bold text-white shadow-lg transition-all hover:bg-slate-800 hover:scale-105 active:scale-95 dark:bg-white dark:text-black dark:hover:bg-slate-200"
+          >
+            <BadgeCheck size={16} className="text-[#FFC107] dark:text-[#798321]" />
+            Get Digital ID
+          </Link>
+        </motion.div>
+      </div>
 
       {/* Impact Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -144,7 +170,6 @@ export default function VolunteerDashboardOverview() {
               <p className="text-sm font-semibold">No activity to chart yet.</p>
             </div>
           ) : (
-            // FIX: Added mt-8 so 100% height bars don't push tooltips into the header
             <div className="h-48 flex items-end justify-between gap-1 sm:gap-4 relative mt-8">
               {/* Background Grid Lines */}
               <div className="absolute inset-0 flex flex-col justify-between pointer-events-none border-b border-slate-100 dark:border-neutral-800">
@@ -168,7 +193,7 @@ export default function VolunteerDashboardOverview() {
                       transition={{ duration: 0.8, delay: 0.4 + (index * 0.1) }}
                       className="w-full max-w-[40px] bg-gradient-to-t from-[#798321] to-[#a3b02c] dark:from-[#FFC107] dark:to-[#ffda66] rounded-t-lg shadow-sm"
                     ></motion.div>
-                    {/* X-Axis Label - FIX: Reduced size on mobile to prevent overlapping */}
+                    {/* X-Axis Label */}
                     <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 mt-2 truncate w-full text-center">
                       {new Date(data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </span>
@@ -213,7 +238,6 @@ export default function VolunteerDashboardOverview() {
       </div>
 
       {/* Dynamic Action Banner for Next Event */}
-      {/* FIX: Changed items-center to items-start sm:items-center to fix mobile alignment issues */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 dark:border-neutral-800 dark:bg-[#111] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div>
           {nextEvent ? (

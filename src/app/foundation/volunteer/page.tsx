@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Fraunces } from "next/font/google";
-import { Users, CheckCircle, ArrowLeft, Sparkles, Eye, EyeOff, LogIn } from "lucide-react";
+import { Users, CheckCircle, ArrowLeft, Sparkles, Eye, EyeOff, LogIn, Upload } from "lucide-react";
 import { motion } from "framer-motion";
 import { createClient } from "@supabase/supabase-js";
 
@@ -47,6 +47,10 @@ function VolunteerFormContent() {
     volunteerType: "",
   });
 
+  // Image Upload State
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
   // Login State
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -85,6 +89,14 @@ function VolunteerFormContent() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
@@ -96,7 +108,31 @@ function VolunteerFormContent() {
 
     try {
       setSubmitting(true);
+      
+      let profile_image_url = null;
 
+      // 1. Upload Image to Supabase Storage (if selected)
+      if (imageFile) {
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `profiles/${fileName}`;
+
+        // Ensure you have created a public bucket named 'avatars' in Supabase
+        const { error: uploadError } = await supabase.storage
+          .from("avatars") 
+          .upload(filePath, imageFile);
+
+        if (uploadError) throw new Error("Image upload failed: " + uploadError.message);
+
+        // 2. Get Public URL of the uploaded image
+        const { data: publicUrlData } = supabase.storage
+          .from("avatars")
+          .getPublicUrl(filePath);
+
+        profile_image_url = publicUrlData.publicUrl;
+      }
+
+      // 3. Insert into Database
       const { error: insertError } = await supabase.from("volunteers").insert([
         {
           name: formData.name,
@@ -110,6 +146,7 @@ function VolunteerFormContent() {
           active_blood_donor: formData.activeBloodDonor,
           password: formData.password, // In production, hash this password securely
           volunteer_type: formData.volunteerType,
+          profile_image_url: profile_image_url,
         },
       ]);
 
@@ -118,6 +155,7 @@ function VolunteerFormContent() {
       }
 
       setSuccess(true);
+      // Reset all states
       setFormData({
         name: "",
         phone: "",
@@ -132,6 +170,8 @@ function VolunteerFormContent() {
         confirmPassword: "",
         volunteerType: "",
       });
+      setImageFile(null);
+      setImagePreview(null);
     } catch (err: any) {
       console.error("Volunteer registration error:", err);
       setErrorMessage(err.message || "An unexpected error occurred. Please try again.");
@@ -340,6 +380,40 @@ function VolunteerFormContent() {
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                {/* Profile Image Upload */}
+                <div className="col-span-1 md:col-span-2">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-neutral-300 mb-1.5">
+                    Profile Photo
+                  </label>
+                  <div className="flex items-center gap-4">
+                    {imagePreview ? (
+                      <div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-[#798321] dark:border-[#FFC107]">
+                        <Image src={imagePreview} alt="Preview" fill className="object-cover" />
+                      </div>
+                    ) : (
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-neutral-800 border border-dashed border-slate-300 dark:border-neutral-700">
+                        <Upload size={20} className="text-slate-400" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="w-full text-xs text-slate-500 dark:text-neutral-400
+                          file:mr-4 file:rounded-xl file:border-0
+                          file:bg-slate-100 file:px-4 file:py-2.5 file:text-xs file:font-semibold
+                          file:text-slate-700 hover:file:bg-slate-200
+                          dark:file:bg-neutral-800 dark:file:text-neutral-300 dark:hover:file:bg-neutral-700
+                          cursor-pointer"
+                      />
+                      <p className="mt-1 text-[10px] text-slate-400 dark:text-neutral-500">
+                        PNG, JPG or WEBP (Max 2MB)
+                      </p>
+                    </div>
+                  </div>
+                </div>
                 
                 {/* Your Name */}
                 <div>

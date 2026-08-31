@@ -88,8 +88,15 @@ export default function ApprovalsPage() {
                     {registrations.map((reg) => (
                       <tr key={reg.id} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/40 transition">
                         <td className="py-4 px-6">
-                          <div className="font-bold text-slate-900 dark:text-white">{reg.volunteers?.name || "Unknown User"}</div>
-                          <div className="text-slate-500 dark:text-slate-400 text-[11px]">{reg.volunteers?.email}</div>
+                          <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            {reg.volunteers?.name || "Unknown User"}
+                            {reg.volunteers?.display_id && (
+                              <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-mono text-slate-600 dark:bg-zinc-800 dark:text-zinc-400">
+                                {reg.volunteers.display_id}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-slate-500 dark:text-slate-400 text-[11px] mt-0.5">{reg.volunteers?.email}</div>
                         </td>
                         <td className="py-4 px-4">
                           <div className="font-bold text-[#798321] dark:text-[#FFC107]">{reg.volunteer_events?.title || "Unknown Event"}</div>

@@ -63,7 +63,14 @@ export default function AdminVolunteersPage() {
   };
 
   const filteredVolunteers = volunteers.filter((v) => {
-    const matchesSearch = v.name?.toLowerCase().includes(searchTerm.toLowerCase()) || v.email?.toLowerCase().includes(searchTerm.toLowerCase()) || v.city?.toLowerCase().includes(searchTerm.toLowerCase()) || v.phone?.includes(searchTerm);
+    const searchString = searchTerm.toLowerCase();
+    const matchesSearch = 
+      v.name?.toLowerCase().includes(searchString) || 
+      v.email?.toLowerCase().includes(searchString) || 
+      v.city?.toLowerCase().includes(searchString) || 
+      v.phone?.includes(searchString) ||
+      v.display_id?.toLowerCase().includes(searchString); // Allows searching by ID
+      
     const matchesType = filterType === "All" || v.volunteer_type === filterType;
     const matchesBloodDonor = filterBloodDonor === "All" || v.active_blood_donor === filterBloodDonor;
     const matchesStatus = filterStatus === "All" || (v.status || "pending") === filterStatus;
@@ -104,7 +111,7 @@ export default function AdminVolunteersPage() {
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
               <div className="md:col-span-5 relative">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                <input type="text" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-xs font-medium text-slate-800 focus:border-[#798321] focus:outline-none dark:border-zinc-800 dark:bg-zinc-800 dark:text-white" />
+                <input type="text" placeholder="Search by name, email, or Rak-ID..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-xs font-medium text-slate-800 focus:border-[#798321] focus:outline-none dark:border-zinc-800 dark:bg-zinc-800 dark:text-white" />
               </div>
               <div className="md:col-span-3">
                 <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-2.5 px-4 text-xs font-semibold text-slate-700 focus:border-[#798321] focus:outline-none dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
@@ -152,8 +159,13 @@ export default function AdminVolunteersPage() {
                       return (
                         <tr key={volunteer.id} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/40 transition">
                           <td className="py-4 px-6">
-                            <div className="font-bold text-slate-900 dark:text-white">{volunteer.name}</div>
-                            <div className="text-slate-500 dark:text-slate-400 text-[11px]">{volunteer.email}</div>
+                            <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                              {volunteer.name}
+                              <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-mono text-slate-600 dark:bg-zinc-800 dark:text-zinc-400">
+                                {volunteer.display_id || "Rak-PENDING"}
+                              </span>
+                            </div>
+                            <div className="text-slate-500 dark:text-slate-400 text-[11px] mt-0.5">{volunteer.email}</div>
                             <div className="text-slate-400 text-[10px]">+91 {volunteer.phone}</div>
                           </td>
                           <td className="py-4 px-4">
@@ -192,9 +204,23 @@ export default function AdminVolunteersPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 space-y-6">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-zinc-800">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#798321]/10 text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107] font-bold">{selectedVolunteer.name?.charAt(0)}</div>
-                  <div><h3 className="text-base font-bold text-slate-900 dark:text-white">{selectedVolunteer.name}</h3><span className="text-xs text-[#798321] dark:text-[#FFC107] font-semibold">{selectedVolunteer.volunteer_type}</span></div>
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full overflow-hidden bg-[#798321]/10 text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107] font-bold text-lg">
+                    {selectedVolunteer.profile_image_url ? (
+                      <img src={selectedVolunteer.profile_image_url} alt="Profile" className="h-full w-full object-cover" />
+                    ) : (
+                      selectedVolunteer.name?.charAt(0)
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white">{selectedVolunteer.name}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs text-[#798321] dark:text-[#FFC107] font-semibold">{selectedVolunteer.volunteer_type}</span>
+                      <span className="text-[10px] font-mono font-bold bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-slate-600 dark:text-zinc-400">
+                        {selectedVolunteer.display_id || "Rak-PENDING"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 <button onClick={() => setSelectedVolunteer(null)} className="rounded-full p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800"><X size={18} /></button>
               </div>

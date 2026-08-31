@@ -84,20 +84,31 @@ export default function LogHoursPage() {
                   <Clock size={20} className="text-[#798321] dark:text-[#FFC107]" /> Log Hours
                 </h2>
                 <div>
-                  <label className="block text-xs font-bold mb-1">Select Volunteer</label>
-                  <select name="volunteer_id" required className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
+                  <label className="block text-xs font-bold mb-1 text-slate-700 dark:text-slate-300">Select Volunteer</label>
+                  <select name="volunteer_id" required className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-white focus:outline-none focus:border-[#798321]">
                     <option value="">-- Choose Volunteer --</option>
                     {volunteers.filter(v => v.status === "approved").map(v => (
-                      <option key={v.id} value={v.id}>{v.name} ({v.email})</option>
+                      <option key={v.id} value={v.id}>
+                        {v.name} ({v.display_id || "Rak-PENDING"})
+                      </option>
                     ))}
                   </select>
                 </div>
-                <div><label className="block text-xs font-bold mb-1">Event Name / Activity</label><input type="text" name="title" required placeholder="e.g. Tree Plantation Drive" className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-white" /></div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div><label className="block text-xs font-bold mb-1">Date Completed</label><input type="date" name="date" required className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-white" /></div>
-                  <div><label className="block text-xs font-bold mb-1">Hours Logged</label><input type="number" name="hours" required min="1" max="24" className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-white" /></div>
+                <div>
+                  <label className="block text-xs font-bold mb-1 text-slate-700 dark:text-slate-300">Event Name / Activity</label>
+                  <input type="text" name="title" required placeholder="e.g. Tree Plantation Drive" className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-white focus:outline-none focus:border-[#798321]" />
                 </div>
-                <button type="submit" disabled={isPending} className="mt-4 w-full rounded-xl bg-blue-600 py-3 text-xs font-bold text-white transition hover:bg-blue-700">Submit Hours</button>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold mb-1 text-slate-700 dark:text-slate-300">Date Completed</label>
+                    <input type="date" name="date" required className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-white focus:outline-none focus:border-[#798321]" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold mb-1 text-slate-700 dark:text-slate-300">Hours Logged</label>
+                    <input type="number" name="hours" required min="1" max="24" className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-white focus:outline-none focus:border-[#798321]" />
+                  </div>
+                </div>
+                <button type="submit" disabled={isPending} className="mt-4 w-full rounded-xl bg-blue-600 py-3 text-xs font-bold text-white transition hover:bg-blue-700 disabled:opacity-50">Submit Hours</button>
               </form>
             </div>
           </div>
@@ -116,16 +127,23 @@ export default function LogHoursPage() {
                     logs.map(log => {
                       const vol = volunteers.find(v => v.id === log.volunteer_id);
                       return (
-                        <div key={log.id} className="flex items-center justify-between border border-slate-100 p-4 rounded-2xl dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950/50">
+                        <div key={log.id} className="flex items-center justify-between border border-slate-100 p-4 rounded-2xl dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950/50 hover:bg-slate-100 dark:hover:bg-zinc-900 transition">
                           <div>
-                            <span className="text-[10px] font-bold uppercase bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded-full mb-1 inline-block">
+                            <span className="text-[10px] font-bold uppercase bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 px-2.5 py-0.5 rounded-full mb-1.5 inline-block">
                               +{log.hours} Hours
                             </span>
-                            <h3 className="font-bold text-sm dark:text-white">
-                              {vol ? vol.name : "Unknown Volunteer"}
-                            </h3>
+                            <div className="flex items-center gap-2">
+                               <h3 className="font-bold text-sm dark:text-white">
+                                  {vol ? vol.name : "Unknown Volunteer"}
+                               </h3>
+                               {vol?.display_id && (
+                                   <span className="bg-slate-200 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded">
+                                       {vol.display_id}
+                                   </span>
+                               )}
+                            </div>
                             <p className="text-[11px] text-slate-500 dark:text-zinc-400 flex gap-3 mt-1">
-                              <span>📅 {new Date(log.date).toLocaleDateString()}</span> 
+                              <span className="flex items-center gap-1"><Clock size={10}/> {new Date(log.date).toLocaleDateString()}</span> 
                               <span>📌 {log.title}</span>
                             </p>
                           </div>
@@ -170,24 +188,37 @@ export default function LogHoursPage() {
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 space-y-6">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-zinc-800">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">Edit Logged Hours</h3>
-                <button onClick={() => setEditingLog(null)} className="rounded-full p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800"><X size={18} /></button>
+                <button onClick={() => setEditingLog(null)} className="rounded-full p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition"><X size={18} /></button>
               </div>
 
               <form onSubmit={handleUpdateLogSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold mb-1">Select Volunteer</label>
-                  <select name="volunteer_id" defaultValue={editingLog.volunteer_id} required className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-                    {volunteers.filter(v => v.status === "approved").map(v => <option key={v.id} value={v.id}>{v.name} ({v.email})</option>)}
+                  <label className="block text-xs font-bold mb-1 text-slate-700 dark:text-slate-300">Select Volunteer</label>
+                  <select name="volunteer_id" defaultValue={editingLog.volunteer_id} required className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-white focus:outline-none focus:border-[#798321]">
+                    {volunteers.filter(v => v.status === "approved").map(v => (
+                        <option key={v.id} value={v.id}>
+                            {v.name} ({v.display_id || "Rak-PENDING"})
+                        </option>
+                    ))}
                   </select>
                 </div>
-                <div><label className="block text-xs font-bold mb-1">Event Name / Activity</label><input type="text" name="title" defaultValue={editingLog.title} required className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-white" /></div>
+                <div>
+                    <label className="block text-xs font-bold mb-1 text-slate-700 dark:text-slate-300">Event Name / Activity</label>
+                    <input type="text" name="title" defaultValue={editingLog.title} required className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-white focus:outline-none focus:border-[#798321]" />
+                </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className="block text-xs font-bold mb-1">Date Completed</label><input type="date" name="date" defaultValue={editingLog.date} required className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-white" /></div>
-                  <div><label className="block text-xs font-bold mb-1">Hours Logged</label><input type="number" name="hours" defaultValue={editingLog.hours} required min="1" max="24" className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-white" /></div>
+                  <div>
+                      <label className="block text-xs font-bold mb-1 text-slate-700 dark:text-slate-300">Date Completed</label>
+                      <input type="date" name="date" defaultValue={editingLog.date} required className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-white focus:outline-none focus:border-[#798321]" />
+                  </div>
+                  <div>
+                      <label className="block text-xs font-bold mb-1 text-slate-700 dark:text-slate-300">Hours Logged</label>
+                      <input type="number" name="hours" defaultValue={editingLog.hours} required min="1" max="24" className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-white focus:outline-none focus:border-[#798321]" />
+                  </div>
                 </div>
                 <div className="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-zinc-800">
-                  <button type="button" onClick={() => setEditingLog(null)} className="rounded-xl bg-slate-100 px-5 py-2 text-xs font-bold text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 transition">Cancel</button>
-                  <button type="submit" disabled={isPending} className="rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white hover:bg-blue-700 transition">Save Changes</button>
+                  <button type="button" onClick={() => setEditingLog(null)} className="rounded-xl bg-slate-100 px-5 py-2 text-xs font-bold text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 transition hover:bg-slate-200 dark:hover:bg-zinc-700">Cancel</button>
+                  <button type="submit" disabled={isPending} className="rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white hover:bg-blue-700 transition disabled:opacity-50">Save Changes</button>
                 </div>
               </form>
             </motion.div>

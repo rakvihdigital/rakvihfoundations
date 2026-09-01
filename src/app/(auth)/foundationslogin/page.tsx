@@ -4,6 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
+import { createClient } from "@supabase/supabase-js";
+
+// Initialize Supabase Client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+);
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -12,21 +19,61 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
-    // Hardcoded credentials as requested for admin access
-    setTimeout(() => {
-      if (email === "admin@rakvih.org" && password === "rakvih@2026") {
-        // Successfully authenticated - redirect to the admin dashboard
+    try {
+      // 1. Check the new foundation_staff table in Supabase
+      const { data: staffData, error: staffError } = await supabase
+        .from("foundation_staff")
+        .select("*")
+        .eq("email", email)
+        .eq("password", password)
+        .single();
+
+      if (staffData && !staffError) {
+        
+        // Block deactivated users from logging in
+        if (staffData.is_active === false) {
+          setError("Your account has been temporarily suspended. Please contact the Master Admin.");
+          setIsLoading(false);
+          return;
+        }
+
+        // Success! Store the user's role, permissions, and ID in the browser
+        localStorage.setItem("rakvih_admin_id", staffData.id);
+        localStorage.setItem("rakvih_admin_name", staffData.name);
+        localStorage.setItem("rakvih_admin_role", staffData.role);
+        localStorage.setItem("rakvih_admin_staff_id", staffData.staff_id || ""); // Saves the official ID
+        localStorage.setItem("rakvih_admin_permissions", JSON.stringify(staffData.permissions));
+        
         router.push("/adminfoundations");
-      } else {
-        setError("Invalid email or password. Please try again.");
-        setIsLoading(false);
+        return;
       }
-    }, 800);
+
+      // 2. FALLBACK: Master Admin Hardcoded Backup
+      // (Keeps you from getting locked out if the database is empty)
+      if (email === "admin@rakvih.org" && password === "rakvih@2026") {
+        localStorage.setItem("rakvih_admin_name", "Master Admin");
+        localStorage.setItem("rakvih_admin_role", "admin");
+        localStorage.setItem("rakvih_admin_staff_id", "MASTER-ADMIN"); // Master Admin ID tag
+        localStorage.setItem("rakvih_admin_permissions", JSON.stringify(["all"])); // "all" grants master access
+        
+        router.push("/adminfoundations");
+        return;
+      }
+
+      // 3. If neither matched, show error
+      setError("Invalid email or password. Please try again or contact Master Admin.");
+      
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -73,7 +120,7 @@ export default function AdminLoginPage() {
         <form onSubmit={handleLogin} className="mt-6 space-y-4">
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-              Email Address
+              Email Address / Login ID
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
@@ -118,7 +165,7 @@ export default function AdminLoginPage() {
               "Authenticating..."
             ) : (
               <>
-                Sign In to Dashboard <ArrowRight className="h-3.5 w-3.5" />
+                <ArrowRight className="h-3.5 w-3.5" /> Sign In to Dashboard
               </>
             )}
           </button>

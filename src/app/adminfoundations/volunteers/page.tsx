@@ -80,13 +80,13 @@ export default function AdminVolunteersPage() {
   const pendingVolunteersCount = volunteers.filter((v) => (v.status || "pending") === "pending").length;
 
   return (
-    <div className={`min-h-screen bg-slate-50 dark:bg-[#0B1220] ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
+    <div className={`min-h-screen bg-black ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
       <AdminHeader />
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white sm:text-3xl">Manage Volunteers</h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">View, verify, and manage your volunteer community.</p>
+          <h1 className="text-2xl font-extrabold text-white sm:text-3xl">Manage Volunteers</h1>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">View, verify, and manage your volunteer community.</p>
         </div>
 
         <div className="space-y-6">

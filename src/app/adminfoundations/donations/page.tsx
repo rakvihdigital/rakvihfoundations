@@ -109,7 +109,7 @@ export default function AdminDonationsPage() {
   const totalAmount = filteredDonations.reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
   return (
-    <div className={`min-h-screen bg-slate-50 dark:bg-[#0B1220] ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
+    <div className={`min-h-screen bg-black ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
       <AdminHeader />
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -117,10 +117,10 @@ export default function AdminDonationsPage() {
         {/* Page Title & Overview Stats */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white sm:text-3xl">
+            <h1 className="text-2xl font-extrabold text-white sm:text-3xl">
               Donation Management
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
               View, track, and manage financial contributions and cause supporters.
             </p>
           </div>

@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   LayoutDashboard, 
   HeartHandshake, 
@@ -11,200 +13,233 @@ import {
   Users, 
   BadgeDollarSign, 
   LogOut,
-  ChevronDown
+  ChevronDown,
+  ShieldAlert,
+  ShieldCheck,
+  Menu,
+  X
 } from "lucide-react";
 
-const navItems = [
-  { name: "Dashboard", href: "/adminfoundations", icon: LayoutDashboard },
-  { name: "Causes", href: "/adminfoundations/causes", icon: HeartHandshake },
-  { name: "CSR", href: "/adminfoundations/csr", icon: Building2 },
-  { name: "Gallery", href: "/adminfoundations/gallery", icon: ImageIcon },
+// Master list of all possible navigation items
+const masterNavItems = [
+  { id: "dashboard", name: "Dashboard", href: "/adminfoundations", icon: LayoutDashboard },
+  { id: "donations", name: "Donations", href: "/adminfoundations/donations", icon: BadgeDollarSign },
+  { id: "causes", name: "Causes & Pricing", href: "/adminfoundations/causes", icon: HeartHandshake },
+  { id: "csr", name: "CSR Proposals", href: "/adminfoundations/csr", icon: Building2 },
+  { id: "gallery", name: "Gallery", href: "/adminfoundations/gallery", icon: ImageIcon },
+  { id: "contact", name: "Contact Inquiries", href: "/adminfoundations/contact", icon: MessageSquare },
   { 
-    name: "Volunteers", 
-    href: "/adminfoundations/volunteers", 
+    id: "volunteer_hub", 
+    name: "Volunteer Hub", 
     icon: Users,
     dropdown: [
-      { name: "👥 Manage Volunteers", href: "/adminfoundations/volunteers" },
-      { name: "📋 Event Approvals", href: "/adminfoundations/volunteers/approvals" },
-      { name: "📅 Manage Events", href: "/adminfoundations/volunteers/events" },
-      { name: "⏱️ Log Hours", href: "/adminfoundations/volunteers/hours" },
-      { name: "📢 Notice Board", href: "/adminfoundations/volunteers/announcements" },
+      { id: "volunteers", name: "Manage Volunteers", href: "/adminfoundations/volunteers" },
+      { id: "approvals", name: "Event Approvals", href: "/adminfoundations/volunteers/approvals" },
+      { id: "events", name: "Manage Events", href: "/adminfoundations/volunteers/events" },
+      { id: "log-hours", name: "Log Hours", href: "/adminfoundations/volunteers/hours" },
+      { id: "announcements", name: "Notice Board", href: "/adminfoundations/volunteers/announcements" },
     ]
   },
-  { name: "Donations", href: "/adminfoundations/donations", icon: BadgeDollarSign },
-  { name: "Contact", href: "/adminfoundations/contact", icon: MessageSquare },
+  { id: "staff", name: "Staff Management", href: "/adminfoundations/staff", icon: ShieldAlert, adminOnly: true },
 ];
 
-export default function AdminHeader() {
+export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
 
+  // Auth & Permissions State
+  const [isMounted, setIsMounted] = useState(false);
+  const [userRole, setUserRole] = useState("staff");
+  const [userName, setUserName] = useState("");
+  const [staffId, setStaffId] = useState(""); // Ensures Staff ID is tracked
+  const [permissions, setPermissions] = useState<string[]>([]);
+  
+  // UI State
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [openDropdowns, setOpenDropdowns] = useState<string[]>(["volunteer_hub"]);
+
+  useEffect(() => {
+    // Read auth data from localStorage (set during login)
+    const role = localStorage.getItem("rakvih_admin_role") || "staff";
+    const name = localStorage.getItem("rakvih_admin_name") || "Staff Member";
+    const sId = localStorage.getItem("rakvih_admin_staff_id") || ""; // Grabs the ID
+    let perms: string[] = [];
+    
+    try {
+      perms = JSON.parse(localStorage.getItem("rakvih_admin_permissions") || "[]");
+    } catch (e) {
+      perms = [];
+    }
+
+    setUserRole(role);
+    setUserName(name);
+    setStaffId(sId);
+    setPermissions(perms);
+    setIsMounted(true);
+  }, []);
+
   const handleLogout = () => {
+    localStorage.clear(); // Safely clears everything
     router.push("/foundationslogin");
   };
 
-  return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/90 backdrop-blur-md dark:border-zinc-800 dark:bg-black/90 shadow-sm">
-      <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-8">
-        
-        {/* Brand / Logo */}
-        <Link href="/adminfoundations" className="flex items-center gap-3 shrink-0">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#798321]/10 p-1.5 dark:bg-[#FFC107]/10">
-            <img
-              src="/logosqunobg.png"
-              alt="RAKVIH Foundation Logo"
-              className="h-full w-full object-contain"
-            />
-          </div>
-          <div>
-            <span className="block text-xs font-extrabold uppercase tracking-wider text-[#24310F] dark:text-white">
-              RAKVIH Foundation
-            </span>
-            <span className="block text-[10px] font-semibold text-[#798321] dark:text-[#FFC107]">
-              Admin Control Center
-            </span>
-          </div>
-        </Link>
+  const toggleDropdown = (id: string) => {
+    setOpenDropdowns((prev) => 
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
 
-        {/* Desktop Navigation Links */}
-        <nav className="hidden xl:flex items-center gap-1">
-          {navItems.map((item) => {
+  // Safely filter navigation items WITHOUT breaking the dropdowns
+  const filteredNavItems = masterNavItems.reduce((acc: any[], item) => {
+    // Master Admin sees everything
+    if (permissions.includes("all")) {
+      acc.push(item);
+      return acc;
+    }
+
+    // Block admin-only pages from standard staff
+    if (item.adminOnly && userRole !== "admin") return acc;
+
+    if (item.dropdown) {
+      const allowedSubs = item.dropdown.filter(sub => permissions.includes(sub.id));
+      if (allowedSubs.length > 0) {
+        acc.push({ ...item, dropdown: allowedSubs }); // Creates a safe copy
+      }
+    } else if (permissions.includes(item.id)) {
+      acc.push(item);
+    }
+    
+    return acc;
+  }, []);
+
+  if (!isMounted) return null;
+
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media (min-width: 1024px) {
+          main { margin-left: 256px !important; width: calc(100% - 256px) !important; }
+        }
+      `}} />
+
+      {/* MOBILE TOP BAR */}
+      <div className="lg:hidden sticky top-0 z-40 w-full border-b border-zinc-800 bg-black/90 backdrop-blur-md px-4 py-3 flex items-center justify-between shadow-sm">
+        <div className="flex items-center gap-3">
+          <button onClick={() => setIsMobileOpen(true)} className="p-2 -ml-2 text-white hover:bg-zinc-900 rounded-lg">
+            <Menu size={20} />
+          </button>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFC107]/10 p-1">
+            <img src="/logosqunobg.png" alt="Logo" className="h-full w-full object-contain" />
+          </div>
+        </div>
+        <button onClick={handleLogout} className="text-xs font-bold text-red-500 bg-red-500/10 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+          <LogOut size={14} /> Logout
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {isMobileOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setIsMobileOpen(false)}
+            className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* SIDEBAR COMPONENT */}
+      <div className={`fixed top-0 left-0 z-50 h-[100dvh] w-64 bg-[#0a0a0a] border-r border-zinc-800 flex flex-col transition-transform duration-300 ease-in-out ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+        
+        {/* Sidebar Header / Logo */}
+        <div className="h-20 shrink-0 border-b border-zinc-800/80 px-6 flex items-center justify-between">
+          <Link href="/adminfoundations" className="flex items-center gap-3" onClick={() => setIsMobileOpen(false)}>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FFC107]/10 p-1.5">
+              <img src="/logosqunobg.png" alt="Logo" className="h-full w-full object-contain" />
+            </div>
+            <div>
+              <span className="block text-xs font-black uppercase tracking-widest text-white">RAKVIH</span>
+              <span className="block text-[9px] font-bold text-[#FFC107] uppercase tracking-widest">Admin Portal</span>
+            </div>
+          </Link>
+          <button onClick={() => setIsMobileOpen(false)} className="lg:hidden p-2 text-zinc-400 hover:text-white">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Navigation Links Area */}
+        <div className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar space-y-1">
+          <p className="px-2 mb-3 text-[10px] font-bold uppercase tracking-widest text-zinc-500">Menu</p>
+          
+          {filteredNavItems.map((item) => {
             const Icon = item.icon;
-            const isActive = item.dropdown ? pathname.startsWith(item.href) : pathname === item.href;
+            const isDropdownOpen = openDropdowns.includes(item.id);
+            const isDropdownActive = item.dropdown && item.dropdown.some((sub: any) => pathname === sub.href);
+            const isActive = !item.dropdown && pathname === item.href;
 
             if (item.dropdown) {
               return (
-                <div className="relative group" key={item.name}>
-                  <Link
-                    href={item.href}
-                    className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
-                      isActive
-                        ? "bg-[#798321] text-white shadow-md dark:bg-[#FFC107] dark:text-black"
-                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-zinc-900"
-                    }`}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span>{item.name}</span>
-                    <ChevronDown className="h-3 w-3 opacity-70 transition-transform group-hover:rotate-180" />
-                  </Link>
-
-                  {/* Dropdown Menu */}
-                  <div className="absolute left-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                    <div className="w-48 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl dark:border-zinc-800 dark:bg-[#111] flex flex-col gap-0.5">
-                      {item.dropdown.map((sub) => (
-                        <Link
-                          key={sub.name}
-                          href={sub.href}
-                          className={`px-3 py-2.5 text-xs font-bold rounded-lg transition-colors ${
-                            pathname === sub.href 
-                              ? "bg-[#798321]/10 text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107]" 
-                              : "text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-zinc-900 dark:hover:text-white"
-                          }`}
-                        >
-                          {sub.name}
-                        </Link>
-                      ))}
+                <div key={item.id} className="mb-1">
+                  <button onClick={() => toggleDropdown(item.id)} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${isDropdownActive ? "bg-zinc-900 text-white" : "text-zinc-400 hover:bg-zinc-900/50 hover:text-zinc-200"}`}>
+                    <div className="flex items-center gap-2.5">
+                      <Icon size={16} className={isDropdownActive ? "text-[#FFC107]" : "opacity-70"} />
+                      <span>{item.name}</span>
                     </div>
-                  </div>
+                    <ChevronDown size={14} className={`transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`} />
+                  </button>
+                  <AnimatePresence>
+                    {isDropdownOpen && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mt-1 space-y-0.5 ml-4 pl-3 border-l border-zinc-800">
+                        {item.dropdown.map((sub: any) => (
+                          <Link key={sub.id} href={sub.href} onClick={() => setIsMobileOpen(false)} className={`block w-full px-3 py-2 rounded-lg text-[11px] font-bold transition-all ${pathname === sub.href ? "bg-[#FFC107]/10 text-[#FFC107]" : "text-zinc-400 hover:bg-zinc-900/50 hover:text-zinc-200"}`}>
+                            {sub.name}
+                          </Link>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               );
             }
 
             return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
-                  isActive
-                    ? "bg-[#798321] text-white shadow-md dark:bg-[#FFC107] dark:text-black"
-                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-zinc-900"
-                }`}
-              >
-                <Icon className="h-4 w-4 shrink-0" />
+              <Link key={item.id} href={item.href} onClick={() => setIsMobileOpen(false)} className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${isActive ? "bg-[#FFC107] text-black shadow-md" : "text-zinc-400 hover:bg-zinc-900/50 hover:text-zinc-200"}`}>
+                <Icon size={16} className={isActive ? "text-black" : "opacity-70"} />
                 <span>{item.name}</span>
               </Link>
             );
           })}
-        </nav>
+        </div>
 
-        {/* Logout Action */}
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            onClick={handleLogout}
-            className="inline-flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2 text-xs font-bold text-red-600 transition-colors hover:bg-red-500/20 dark:text-red-400"
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Logout</span>
+        {/* Sidebar Footer / User Profile */}
+        <div className="shrink-0 border-t border-zinc-800/80 p-4">
+          <div className="flex items-center gap-3 mb-4 px-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-800 text-zinc-300 font-bold">
+              {userName.charAt(0)}
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <p className="text-xs font-bold text-white truncate">{userName}</p>
+              
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-[9px] font-bold uppercase tracking-widest text-[#FFC107] flex items-center gap-1">
+                  {userRole === "admin" ? <ShieldCheck size={10} /> : <ShieldAlert size={10} />}
+                  {userRole}
+                </p>
+                
+                {/* Official Staff ID Displayed Right Here! */}
+                {staffId && (
+                  <span className="text-[8px] font-mono font-bold bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded">
+                    {staffId}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+          <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-500/20">
+            <LogOut size={14} /> Logout
           </button>
         </div>
 
       </div>
-
-      {/* Secondary Desktop Row for Medium Screens / Mobile Horizontal Bar */}
-      {/* FIX: Removed overflow-x-auto and added flex-wrap so the dropdown isn't clipped */}
-      <div className="flex xl:hidden border-t border-slate-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-black">
-        <div className="flex flex-wrap justify-center gap-2 mx-auto">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-
-            // Replicate the Desktop Dropdown Logic perfectly for mobile
-            if (item.dropdown) {
-              const isActive = pathname.startsWith(item.href);
-              return (
-                <div className="relative group" key={item.name}>
-                  <Link
-                    href={item.href}
-                    className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold whitespace-nowrap transition-all ${
-                      isActive
-                        ? "bg-[#798321] text-white dark:bg-[#FFC107] dark:text-black"
-                        : "text-slate-600 bg-slate-100 dark:text-slate-300 dark:bg-zinc-900 hover:bg-slate-200"
-                    }`}
-                  >
-                    <Icon className="h-3.5 w-3.5" />
-                    <span>{item.name}</span>
-                    <ChevronDown className="h-3 w-3 opacity-70 transition-transform group-hover:rotate-180" />
-                  </Link>
-
-                  {/* Mobile Dropdown Menu (Centered automatically to avoid clipping on tiny screens) */}
-                  <div className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100]">
-                    <div className="w-48 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl dark:border-zinc-800 dark:bg-[#111] flex flex-col gap-0.5">
-                      {item.dropdown.map((sub) => (
-                        <Link
-                          key={sub.name}
-                          href={sub.href}
-                          className={`px-3 py-2.5 text-[11px] font-bold rounded-lg transition-colors whitespace-normal leading-tight text-left ${
-                            pathname === sub.href 
-                              ? "bg-[#798321]/10 text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107]" 
-                              : "text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-zinc-900 dark:hover:text-white"
-                          }`}
-                        >
-                          {sub.name}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              );
-            }
-
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold whitespace-nowrap transition-all ${
-                  isActive
-                    ? "bg-[#798321] text-white dark:bg-[#FFC107] dark:text-black"
-                    : "text-slate-600 bg-slate-100 dark:text-slate-300 dark:bg-zinc-900 hover:bg-slate-200"
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                <span>{item.name}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-    </header>
+    </>
   );
 }

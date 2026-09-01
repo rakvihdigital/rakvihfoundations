@@ -277,7 +277,7 @@ export default function AdminCausesPage() {
 
   return (
     <div
-      className={`min-h-screen bg-slate-50 dark:bg-[#0B1220] ${display.variable}`}
+      className={`min-h-screen bg-black ${display.variable}`}
       style={{ fontFamily: "var(--font-display)" }}
     >
       <AdminHeader />
@@ -286,10 +286,10 @@ export default function AdminCausesPage() {
         {/* Page Title & Overview Stats */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white sm:text-3xl">
+            <h1 className="text-2xl font-extrabold text-white sm:text-3xl">
               Causes &amp; Pricing
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
               Changes sync directly with your Supabase database and storage bucket.
             </p>
           </div>

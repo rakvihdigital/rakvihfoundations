@@ -41,6 +41,11 @@ export default function AdminDashboardPage() {
   const [gallery, setGallery] = useState<any[]>([]);
   const [proposals, setProposals] = useState<any[]>([]);
   const [causes, setCauses] = useState<any[]>([]);
+  
+  // NEW: State to hold the logged-in user's details
+  const [userName, setUserName] = useState("Admin");
+  const [staffId, setStaffId] = useState("");
+  const [userRole, setUserRole] = useState("staff");
 
   const [status, setStatus] = useState<Record<string, SectionState>>({
     donations: { loading: true, error: null },
@@ -51,6 +56,11 @@ export default function AdminDashboardPage() {
   });
 
   useEffect(() => {
+    // NEW: Pull the user's name, ID, and role from local storage when the page loads
+    setUserName(localStorage.getItem("rakvih_admin_name") || "Admin");
+    setStaffId(localStorage.getItem("rakvih_admin_staff_id") || "");
+    setUserRole(localStorage.getItem("rakvih_admin_role") || "staff");
+
     loadAll();
   }, []);
 
@@ -59,7 +69,6 @@ export default function AdminDashboardPage() {
   }
 
   async function loadAll() {
-    // Each section loads independently so one failure doesn't block the rest.
     (async () => {
       try {
         const data = await getDonations();
@@ -175,21 +184,34 @@ export default function AdminDashboardPage() {
 
   return (
     <div
-      className={`min-h-screen bg-slate-50 dark:bg-[#0B1220] ${display.variable}`}
+      className={`min-h-screen bg-black ${display.variable}`}
       style={{ fontFamily: "var(--font-display)" }}
     >
       <AdminHeader />
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Page Title */}
+        
+        {/* UPDATED: Page Title & User Greeting */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white sm:text-3xl">
-              Foundation Dashboard
+            <h1 className="text-2xl font-extrabold text-white sm:text-3xl flex items-center gap-2">
+              Welcome back, {userName.split(" ")[0]} 👋
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-              A quick overview across donations, inquiries, gallery, CSR, and causes.
-            </p>
+            <div className="flex items-center gap-2 mt-1.5">
+              <p className="text-xs sm:text-sm text-slate-400">
+                Foundation Dashboard Overview
+              </p>
+              {staffId && (
+                <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-mono text-zinc-300">
+                  {staffId}
+                </span>
+              )}
+              {userRole === "admin" && (
+                <span className="rounded bg-rose-500/10 px-1.5 py-0.5 text-[9px] font-bold text-rose-500 uppercase tracking-widest">
+                  Master Admin
+                </span>
+              )}
+            </div>
           </div>
 
           {anyLoading && (
@@ -277,7 +299,7 @@ export default function AdminDashboardPage() {
 
         {/* Quick Links Grid */}
         <div className="mb-8">
-          <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-4">Manage Sections</h2>
+          <h2 className="text-sm font-bold text-white mb-4">Manage Sections</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {quickLinks.map((link) => {
               const Icon = link.icon;

@@ -63,13 +63,13 @@ export default function EventsPage() {
   };
 
   return (
-    <div className={`min-h-screen bg-slate-50 dark:bg-[#0B1220] ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
+    <div className={`min-h-screen bg-black ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
       <AdminHeader />
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white sm:text-3xl">Manage Events</h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">Create and manage opportunities for your volunteers.</p>
+          <h1 className="text-2xl font-extrabold text-white sm:text-3xl">Manage Events</h1>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">Create and manage opportunities for your volunteers.</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

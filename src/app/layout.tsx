@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   title: "RAKVIH Foundation",
   description: "Internship Portal",
   icons: {
-    icon: "/images/logo.png",
-    apple: "/images/logo.png",
+    icon: "/images/rakvih-fav.png",
+    apple: "/images/rakvih-fav.png",
   },
 };
 

@@ -432,7 +432,7 @@ export default function Footer() {
 
             {/* Right */}
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              Designed & Developed by{" "}
+              Produced by{" "}
               <a
                 href="https://rakvih.in/"
                 target="_blank"

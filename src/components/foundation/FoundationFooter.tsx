@@ -311,7 +311,7 @@ export default function FoundationFooter() {
 
             {/* Right */}
             <p className="text-sm text-gray-600 dark:text-neutral-400">
-              Designed & Developed by{" "}
+              Produced by{" "}
               <a
                 href="https://rakvih.in/"
                 target="_blank"

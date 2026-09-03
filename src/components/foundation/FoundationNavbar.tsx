@@ -22,7 +22,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 );
 
-// Fallback static causes so it never gets stuck
 const fallbackCategories = [
   {
     id: 1,
@@ -64,12 +63,15 @@ export default function FoundationNavbar() {
 
   useEffect(() => {
     setMounted(true);
-    
+
     async function fetchNavbarCauses() {
       try {
         const [categoriesRes, itemsRes] = await Promise.all([
-          supabase.from("cause_categories").select("id, title, created_at").order("created_at", { ascending: true }),
-          supabase.from("cause_items").select("id, category_id, title, name, is_active")
+          supabase
+            .from("cause_categories")
+            .select("id, title, created_at")
+            .order("created_at", { ascending: true }),
+          supabase.from("cause_items").select("id, category_id, title, name, is_active"),
         ]);
 
         if (!categoriesRes.error && categoriesRes.data && !itemsRes.error && itemsRes.data) {
@@ -77,7 +79,7 @@ export default function FoundationNavbar() {
             ...cat,
             cause_items: itemsRes.data.filter(
               (item) => item.category_id === cat.id && item.is_active !== false
-            )
+            ),
           }));
 
           if (combined.length > 0) {
@@ -88,7 +90,7 @@ export default function FoundationNavbar() {
         console.error("Using fallback navigation links due to fetch error:", err);
       }
     }
-    
+
     fetchNavbarCauses();
 
     const handleClickOutside = (event: MouseEvent) => {
@@ -100,23 +102,17 @@ export default function FoundationNavbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // --- HIDE NAVBAR ON ADMIN & VOLUNTEER DASHBOARDS ---
   if (
-    pathname.includes("/foundation/volunteer/dashboard") || 
+    pathname.includes("/foundation/volunteer/dashboard") ||
     pathname.includes("/adminfoundations")
   ) {
-    return null; 
+    return null;
   }
-  // ---------------------------------------------------
 
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light");
   };
 
-  // True "browser back" behavior — goes to whatever page the user came
-  // from (even outside /foundation), rather than always landing on "/".
-  // Falls back to "/" only if there's no previous entry in history
-  // (e.g. someone opened this page directly via a shared link).
   const handleBack = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
       router.back();
@@ -129,10 +125,10 @@ export default function FoundationNavbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-[999] w-full border-b border-slate-200 bg-white/90 backdrop-blur-md dark:border-neutral-800 dark:bg-black/90 transition-colors duration-500 ${display.variable}`}
     >
-      <div className="mx-auto flex h-[76px] max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-[90px] sm:h-[96px] max-w-[1400px] items-center justify-between px-3 sm:px-6 lg:px-8">
         
-        {/* Left: Back Arrow & Logo */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        {/* Left: Back Arrow & Substantially Enlarged Logo */}
+        <div className="flex items-center gap-1.5 sm:gap-4 min-w-0">
           <button
             onClick={handleBack}
             className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700"
@@ -142,15 +138,17 @@ export default function FoundationNavbar() {
             <ArrowLeft size={18} />
           </button>
 
-          <Link href="/foundation" className="group flex items-center">
-            <div className="relative h-[56px] w-[170px] shrink-0 sm:h-[64px] sm:w-[220px] md:h-[76px] md:w-[250px]">
+          <Link href="/foundation" className="group flex items-center bg-transparent">
+            {/* Enlarged dimensions across all breakpoints with scale-up compensation */}
+            <div className="relative h-[72px] w-[215px] shrink-0 min-[400px]:w-[245px] sm:h-[82px] sm:w-[295px] md:h-[88px] md:w-[350px] bg-transparent">
               <Image
-                src="/Found1.png"
+                src="/rakvih-foundation.png"
                 alt="RAKVIH Foundation Logo"
                 fill
                 priority
-                sizes="(max-width: 768px) 170px, 250px"
-                className="object-contain object-left transition-transform duration-300 group-hover:scale-105"
+                unoptimized
+                sizes="(max-width: 640px) 245px, 350px"
+                className="object-contain object-left scale-125 sm:scale-130 origin-left transition-transform duration-300 group-hover:scale-135 !bg-transparent"
               />
             </div>
           </Link>
@@ -174,10 +172,13 @@ export default function FoundationNavbar() {
                     }`}
                   >
                     <span>{link.label}</span>
-                    <ChevronDown size={14} className={`transition-transform duration-200 ${causesOpen ? "rotate-180" : ""}`} />
+                    <ChevronDown
+                      size={14}
+                      className={`transition-transform duration-200 ${causesOpen ? "rotate-180" : ""}`}
+                    />
                   </button>
 
-                  {/* Desktop Causes Dropdown - 4 Columns in a Row Layout */}
+                  {/* Desktop Causes Dropdown */}
                   <AnimatePresence>
                     {causesOpen && (
                       <motion.div
@@ -188,7 +189,9 @@ export default function FoundationNavbar() {
                         className="absolute left-1/2 -translate-x-1/2 mt-3 w-[920px] max-w-[95vw] rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-neutral-800 dark:bg-[#0a0a0a] z-50 max-h-[75vh] overflow-y-auto space-y-4"
                       >
                         <div className="flex items-center justify-between border-b border-slate-100 pb-3 px-1 dark:border-neutral-800">
-                          <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">Explore Causes</span>
+                          <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                            Explore Causes
+                          </span>
                           <Link
                             href="/foundation/causes"
                             onClick={() => setCausesOpen(false)}
@@ -198,12 +201,13 @@ export default function FoundationNavbar() {
                           </Link>
                         </div>
 
-                        {/* Grid Layout: Exactly 4 Columns in a Row, wrapping automatically into multiple rows */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                           {categories.map((cat) => (
-                            <div key={cat.id} className="space-y-2 rounded-2xl bg-slate-50/70 p-3.5 dark:bg-[#171717] border border-slate-100 dark:border-neutral-800 flex flex-col justify-between">
+                            <div
+                              key={cat.id}
+                              className="space-y-2 rounded-2xl bg-slate-50/70 p-3.5 dark:bg-[#171717] border border-slate-100 dark:border-neutral-800 flex flex-col justify-between"
+                            >
                               <div>
-                                {/* Category Header */}
                                 <Link
                                   href="/foundation/causes"
                                   onClick={() => setCausesOpen(false)}
@@ -213,7 +217,6 @@ export default function FoundationNavbar() {
                                   <span className="truncate">{cat.title}</span>
                                 </Link>
 
-                                {/* Nested Cause Items */}
                                 {cat.cause_items && cat.cause_items.length > 0 ? (
                                   <div className="space-y-1 pl-1 border-l border-slate-200 dark:border-neutral-800 ml-1">
                                     {cat.cause_items.map((item: any) => (
@@ -228,7 +231,9 @@ export default function FoundationNavbar() {
                                     ))}
                                   </div>
                                 ) : (
-                                  <div className="pl-2 text-[11px] text-slate-400 dark:text-neutral-500 italic">No causes listed</div>
+                                  <div className="pl-2 text-[11px] text-slate-400 dark:text-neutral-500 italic">
+                                    No causes listed
+                                  </div>
                                 )}
                               </div>
                             </div>
@@ -265,7 +270,7 @@ export default function FoundationNavbar() {
         </div>
 
         {/* Right: Controls */}
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
           <button
             onClick={toggleTheme}
             aria-label="Toggle Theme"
@@ -309,6 +314,7 @@ export default function FoundationNavbar() {
             <span>Donate</span>
           </Link>
 
+          {/* Mobile Hamburger Toggle */}
           <button
             onClick={() => setOpen(!open)}
             aria-label="Toggle Menu"
@@ -348,13 +354,11 @@ export default function FoundationNavbar() {
                       <div className="pl-4 space-y-3 border-l-2 border-slate-200 dark:border-neutral-800 ml-2 mt-2">
                         {categories.map((cat) => (
                           <div key={cat.id} className="space-y-1.5">
-                            {/* Category Title */}
                             <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-200 px-2 py-1 bg-slate-50 dark:bg-neutral-900 rounded-lg">
                               <Layers size={12} className="text-[#798321] dark:text-[#FFC107]" />
                               {cat.title}
                             </span>
 
-                            {/* Nested Cause Items */}
                             {cat.cause_items && cat.cause_items.length > 0 ? (
                               <div className="pl-4 space-y-1 border-l border-slate-200 dark:border-neutral-800 ml-2">
                                 {cat.cause_items.map((item: any) => (
@@ -369,7 +373,9 @@ export default function FoundationNavbar() {
                                 ))}
                               </div>
                             ) : (
-                              <div className="pl-4 text-[11px] text-slate-400 dark:text-neutral-500 italic">No items available</div>
+                              <div className="pl-4 text-[11px] text-slate-400 dark:text-neutral-500 italic">
+                                No items available
+                              </div>
                             )}
                           </div>
                         ))}

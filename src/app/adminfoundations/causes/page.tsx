@@ -4,7 +4,20 @@ import { useState, useEffect, useTransition } from "react";
 import { Fraunces } from "next/font/google";
 import AdminHeader from "@/components/foundation/adminheader";
 import { motion, AnimatePresence } from "framer-motion";
-import { Image as ImageIcon, Plus, Trash2, FolderPlus, Layers, Edit3, X } from "lucide-react";
+import {
+  Image as ImageIcon,
+  Video,
+  Plus,
+  Trash2,
+  FolderPlus,
+  Layers,
+  Edit3,
+  X,
+  Sliders,
+  Gift,
+  Check,
+  Save,
+} from "lucide-react";
 import {
   getCausesData,
   addCategory,
@@ -16,6 +29,9 @@ import {
   deleteSubCause,
   deleteCategory,
   uploadImageAction,
+  getSystemConfig,
+  saveSystemConfig,
+  type SystemConfig,
 } from "./actions";
 
 const display = Fraunces({
@@ -39,6 +55,19 @@ interface CauseCategory {
   subCauses?: SubCause[];
 }
 
+const CLIENT_DEFAULT_CONFIG: SystemConfig = {
+  minPersons: 1,
+  maxPersons: 100,
+  photoCost: 7,
+  videoCost: 150, // Updated: Flat one-time celebration recording charge
+  textCost: 5,
+  extras: [
+    { id: "item_candle", title: "Scented Candles", cost: 15 },
+    { id: "item_gift", title: "Small Gift Box", cost: 50 },
+    { id: "item_flower", title: "Fresh Flowers", cost: 20 },
+  ],
+};
+
 export default function AdminCausesPage() {
   const [categories, setCategories] = useState<CauseCategory[]>([]);
   const [activeCategoryId, setActiveCategoryId] = useState<string | number>("");
@@ -49,6 +78,11 @@ export default function AdminCausesPage() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const [config, setConfig] = useState<SystemConfig>(CLIENT_DEFAULT_CONFIG);
+  const [newExtraTitle, setNewExtraTitle] = useState("");
+  const [newExtraCost, setNewExtraCost] = useState("");
+  const [savedSuccess, setSavedSuccess] = useState(false);
 
   // Edit Sub-Cause Modal States
   const [editingSub, setEditingSub] = useState<SubCause | null>(null);
@@ -63,13 +97,21 @@ export default function AdminCausesPage() {
   const fetchAndSyncData = async (): Promise<CauseCategory[]> => {
     try {
       setFetchError(null);
-      const data = await getCausesData();
-      const formatted: CauseCategory[] = (data || []).map((cat: any) => ({
+      const [causesData, configData] = await Promise.all([
+        getCausesData(),
+        getSystemConfig(),
+      ]);
+
+      const formatted: CauseCategory[] = (causesData || []).map((cat: any) => ({
         ...cat,
         name: cat.name || cat.title,
         subCauses: cat.cause_items || [],
       }));
+
       setCategories(formatted);
+      if (configData && configData.extras) {
+        setConfig(configData);
+      }
       return formatted;
     } catch (err: any) {
       console.error("Error fetching causes:", err.message || err);
@@ -97,12 +139,49 @@ export default function AdminCausesPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const publicUrl = await uploadImageAction(formData);
-      return publicUrl;
+      return await uploadImageAction(formData);
     } catch (err) {
       console.error("Image upload exception:", err);
       return URL.createObjectURL(file);
     }
+  };
+
+  const handleSaveConfig = () => {
+    startTransition(async () => {
+      try {
+        await saveSystemConfig(config);
+        setSavedSuccess(true);
+        setTimeout(() => setSavedSuccess(false), 2500);
+      } catch (err: any) {
+        alert("Failed to save configuration: " + err.message);
+      }
+    });
+  };
+
+  const handleAddExtraItem = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newExtraTitle.trim()) return;
+
+    const newExtra = {
+      id: `item_${Date.now()}`,
+      title: newExtraTitle.trim(),
+      cost: Number(newExtraCost) || 10,
+    };
+
+    setConfig((prev) => ({
+      ...prev,
+      extras: [...(prev.extras || []), newExtra],
+    }));
+
+    setNewExtraTitle("");
+    setNewExtraCost("");
+  };
+
+  const handleDeleteExtraItem = (extraId: string) => {
+    setConfig((prev) => ({
+      ...prev,
+      extras: (prev.extras || []).filter((ex) => ex.id !== extraId),
+    }));
   };
 
   const handleAddCategorySubmit = async (e: React.FormEvent) => {
@@ -120,8 +199,7 @@ export default function AdminCausesPage() {
           setActiveCategoryId(formatted[formatted.length - 1].id);
         }
       } catch (err: any) {
-        console.error("Add category error:", err);
-        alert("Failed to add header: " + err.message);
+        alert("Failed to add category: " + err.message);
       }
     });
   };
@@ -139,8 +217,7 @@ export default function AdminCausesPage() {
         await fetchAndSyncData();
         setEditingCategory(null);
       } catch (err: any) {
-        console.error("Edit category error:", err);
-        alert("Failed to update header: " + err.message);
+        alert("Failed to update category: " + err.message);
       }
     });
   };
@@ -160,8 +237,7 @@ export default function AdminCausesPage() {
           setActiveCategoryId(formatted[0].id);
         }
       } catch (err: any) {
-        console.error("Delete category error:", err);
-        alert("Failed to delete header: " + err.message);
+        alert("Failed to delete category: " + err.message);
       }
     });
   };
@@ -228,7 +304,6 @@ export default function AdminCausesPage() {
         await addSubCause(activeCategoryId, subName, costValue, subImage);
         await fetchAndSyncData();
       } catch (err: any) {
-        console.error("Add sub-cause error:", err);
         alert("Failed to add sub-item: " + err.message);
       }
     });
@@ -242,7 +317,6 @@ export default function AdminCausesPage() {
         await deleteSubCause(subId);
         await fetchAndSyncData();
       } catch (err: any) {
-        console.error("Delete sub-cause error:", err);
         alert("Failed to delete sub-item: " + err.message);
       }
     });
@@ -269,71 +343,223 @@ export default function AdminCausesPage() {
         await fetchAndSyncData();
         setEditingSub(null);
       } catch (err: any) {
-        console.error("Edit sub-cause error:", err);
         alert("Failed to update sub-item: " + err.message);
       }
     });
   };
 
   return (
-    <div
-      className={`min-h-screen bg-black ${display.variable}`}
-      style={{ fontFamily: "var(--font-display)" }}
-    >
+    <div className={`min-h-screen bg-black ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
       <AdminHeader />
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Page Title & Overview Stats */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-extrabold text-white sm:text-3xl">
-              Causes &amp; Pricing
-            </h1>
+            <h1 className="text-2xl font-extrabold text-white sm:text-3xl">Causes &amp; Pricing Management</h1>
             <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Changes sync directly with your Supabase database and storage bucket.
+              Configure member limits, packaging unit costs, celebration video fee, and base campaign items.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 shadow-sm">
               <span className="block text-[10px] font-bold uppercase text-slate-400">Headers</span>
-              <span className="text-lg font-extrabold text-[#798321] dark:text-[#FFC107]">
-                {categories.length}
-              </span>
+              <span className="text-lg font-extrabold text-[#FFC107]">{categories.length}</span>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 shadow-sm">
               <span className="block text-[10px] font-bold uppercase text-slate-400">Sub-Items</span>
-              <span className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400">
-                {totalSubCauses}
-              </span>
+              <span className="text-lg font-extrabold text-emerald-400">{totalSubCauses}</span>
             </div>
             {isPending && (
-              <div className="inline-flex items-center gap-2 rounded-2xl bg-[#798321]/10 px-4 py-3 text-xs font-bold text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107]">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#798321] dark:border-[#FFC107] border-t-transparent" />
-                Syncing...
+              <div className="inline-flex items-center gap-2 rounded-2xl bg-[#FFC107]/10 px-4 py-3 text-xs font-bold text-[#FFC107]">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#FFC107] border-t-transparent" />
+                Saving...
               </div>
             )}
           </div>
         </div>
 
-        {/* Database Error Banner */}
         {fetchError && (
-          <div className="mb-6 rounded-2xl bg-red-50 border border-red-200 p-4 text-xs text-red-600 dark:bg-red-950/30 dark:border-red-900/50 dark:text-red-400 flex flex-col gap-1">
-            <span className="font-bold">Database Connection / Policy Error:</span>
-            <span>{fetchError}</span>
+          <div className="mb-6 rounded-2xl bg-red-950/30 border border-red-900/50 p-4 text-xs text-red-400">
+            {fetchError}
           </div>
         )}
 
         {loading ? (
-          <div className="rounded-3xl border border-slate-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900 py-20 flex justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#798321] border-t-transparent" />
+          <div className="rounded-3xl border border-zinc-800 bg-zinc-900 py-20 flex justify-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#FFC107] border-t-transparent" />
           </div>
         ) : (
-          <div className="space-y-6">
-            {/* Add Header / Category Section */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                <FolderPlus size={16} className="text-[#798321] dark:text-[#FFC107]" /> Add New Header (Category)
+          <div className="space-y-8">
+            {/* ── SECTION 1: Limits & Add-ons Configurator (Clear Distinction: Per-Member vs Flat Fee) ── */}
+            <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-5 sm:p-6 shadow-xl space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-800 pb-4 gap-3">
+                <div>
+                  <h2 className="text-base font-bold text-white flex items-center gap-2">
+                    <Sliders size={18} className="text-[#FFC107]" /> Global Checkout Rules &amp; Add-on Pricing
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    Controls member limits, packaging unit costs per member, and the one-time video recording fee.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSaveConfig}
+                  disabled={isPending}
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#798321] to-[#FFC107] px-5 py-2.5 text-xs font-bold text-black shadow-md hover:opacity-90 active:scale-95 transition disabled:opacity-50"
+                >
+                  {savedSuccess ? <Check size={16} /> : <Save size={16} />}
+                  <span>{savedSuccess ? "Saved to Supabase!" : "Save All Settings"}</span>
+                </button>
+              </div>
+
+              {/* 5 Distinct Controls: Min, Max, Photo, Video, Dedication Label */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-800/60 p-3.5 space-y-1.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Min Members
+                  </span>
+                  <input
+                    type="number"
+                    min="1"
+                    value={config.minPersons}
+                    onChange={(e) =>
+                      setConfig({ ...config, minPersons: Math.max(1, Number(e.target.value) || 1) })
+                    }
+                    className="w-full rounded-xl border border-zinc-700 bg-zinc-900 py-1.5 px-3 text-sm font-bold text-white focus:border-[#FFC107] focus:outline-none"
+                  />
+                  <span className="text-[10px] text-slate-500 block">Lowest allowed</span>
+                </div>
+
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-800/60 p-3.5 space-y-1.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Max Members
+                  </span>
+                  <input
+                    type="number"
+                    min="1"
+                    value={config.maxPersons}
+                    onChange={(e) =>
+                      setConfig({ ...config, maxPersons: Math.max(1, Number(e.target.value) || 100) })
+                    }
+                    className="w-full rounded-xl border border-zinc-700 bg-zinc-900 py-1.5 px-3 text-sm font-bold text-white focus:border-[#FFC107] focus:outline-none"
+                  />
+                  <span className="text-[10px] text-slate-500 block">Maximum allowed</span>
+                </div>
+
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-800/60 p-3.5 space-y-1.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block flex items-center gap-1">
+                    <ImageIcon size={12} className="text-[#FFC107]" /> Photo (₹/member)
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={config.photoCost}
+                    onChange={(e) =>
+                      setConfig({ ...config, photoCost: Math.max(0, Number(e.target.value) || 0) })
+                    }
+                    className="w-full rounded-xl border border-zinc-700 bg-zinc-900 py-1.5 px-3 text-sm font-bold text-[#FFC107] focus:border-[#FFC107] focus:outline-none"
+                  />
+                  <span className="text-[10px] text-slate-500 block">Photo on packing</span>
+                </div>
+
+                {/* Video Flat Fee Input */}
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-800/60 p-3.5 space-y-1.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block flex items-center gap-1">
+                    <Video size={12} className="text-[#FFC107]" /> Video (Flat ₹)
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={config.videoCost}
+                    onChange={(e) =>
+                      setConfig({ ...config, videoCost: Math.max(0, Number(e.target.value) || 0) })
+                    }
+                    className="w-full rounded-xl border border-zinc-700 bg-zinc-900 py-1.5 px-3 text-sm font-bold text-[#FFC107] focus:border-[#FFC107] focus:outline-none"
+                  />
+                  <span className="text-[10px] text-purple-400 font-semibold block">One-time service fee</span>
+                </div>
+
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-800/60 p-3.5 space-y-1.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Label (₹/member)
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={config.textCost}
+                    onChange={(e) =>
+                      setConfig({ ...config, textCost: Math.max(0, Number(e.target.value) || 0) })
+                    }
+                    className="w-full rounded-xl border border-zinc-700 bg-zinc-900 py-1.5 px-3 text-sm font-bold text-[#FFC107] focus:border-[#FFC107] focus:outline-none"
+                  />
+                  <span className="text-[10px] text-slate-500 block">Custom name label</span>
+                </div>
+              </div>
+
+              {/* Extra Items List */}
+              <div className="space-y-3 pt-2">
+                <span className="text-xs font-bold text-white block">
+                  Configured Gift Extras (Populates User Dropdown)
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {(config.extras || []).map((extra) => (
+                    <div
+                      key={extra.id}
+                      className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-800/40 px-3.5 py-2.5"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Gift size={14} className="text-[#FFC107]" />
+                        <span className="text-xs font-semibold text-white">{extra.title}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-[#FFC107]">₹{extra.cost}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteExtraItem(extra.id)}
+                          className="text-slate-500 hover:text-red-400 transition"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <form onSubmit={handleAddExtraItem} className="pt-2 flex flex-col sm:flex-row gap-3 items-end">
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      placeholder="Extra Gift Title (e.g. Scented Candles, Gift Box)"
+                      value={newExtraTitle}
+                      onChange={(e) => setNewExtraTitle(e.target.value)}
+                      className="w-full rounded-xl border border-zinc-800 bg-zinc-800 py-2 px-3 text-xs text-white focus:border-[#FFC107] focus:outline-none"
+                    />
+                  </div>
+                  <div className="w-full sm:w-36">
+                    <input
+                      type="number"
+                      placeholder="Cost / member (₹)"
+                      value={newExtraCost}
+                      onChange={(e) => setNewExtraCost(e.target.value)}
+                      className="w-full rounded-xl border border-zinc-800 bg-zinc-800 py-2 px-3 text-xs text-white focus:border-[#FFC107] focus:outline-none"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-zinc-800 border border-zinc-700 px-4 py-2 text-xs font-bold text-white hover:bg-zinc-700 transition"
+                  >
+                    <Plus size={14} /> Add Extra
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {/* ── SECTION 2: Category & Base Sub-Causes ── */}
+            <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-4 sm:p-6 shadow-sm">
+              <h2 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                <FolderPlus size={16} className="text-[#FFC107]" /> Add New Header (Category)
               </h2>
               <form onSubmit={handleAddCategorySubmit} className="flex flex-col sm:flex-row gap-3">
                 <input
@@ -342,50 +568,48 @@ export default function AdminCausesPage() {
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
                   placeholder="e.g. Healthcare, Education, Orphanage"
-                  className="flex-1 rounded-2xl border border-slate-200 bg-slate-50 py-2.5 px-4 text-xs font-medium text-slate-800 focus:border-[#798321] focus:outline-none dark:border-zinc-800 dark:bg-zinc-800 dark:text-white"
+                  className="flex-1 rounded-2xl border border-zinc-800 bg-zinc-800 py-2.5 px-4 text-xs font-medium text-white focus:border-[#FFC107] focus:outline-none"
                 />
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#798321] px-6 py-2.5 text-xs font-bold text-white shadow-sm transition hover:opacity-90 disabled:opacity-50 dark:bg-[#FFC107] dark:text-black"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#FFC107] px-6 py-2.5 text-xs font-bold text-black shadow-sm transition hover:opacity-90 disabled:opacity-50"
                 >
-                  <Plus size={14} /> Save to Supabase
+                  <Plus size={14} /> Save Header
                 </button>
               </form>
             </div>
 
-            {/* Categories Tab Selector with Edit & Delete */}
+            {/* Category Tabs */}
             <div className="flex items-center gap-3 overflow-x-auto pb-2">
               {categories.map((cat) => (
                 <div
                   key={cat.id}
-                  className="flex items-center gap-1 shrink-0 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-1 shadow-sm"
+                  className="flex items-center gap-1 shrink-0 bg-zinc-900 border border-zinc-800 rounded-2xl p-1 shadow-sm"
                 >
                   <button
                     onClick={() => setActiveCategoryId(cat.id)}
                     className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all ${
                       String(activeCategoryId) === String(cat.id)
-                        ? "bg-[#798321] text-white shadow-md dark:bg-[#FFC107] dark:text-black"
-                        : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-zinc-800"
+                        ? "bg-[#FFC107] text-black shadow-md"
+                        : "text-slate-300 hover:bg-zinc-800"
                     }`}
                   >
                     <Layers size={14} />
                     {cat.name}
                   </button>
 
-                  {/* Edit Header Button */}
                   <button
                     onClick={() => {
                       setEditingCategory(cat);
                       setEditCategoryNameInput(cat.name);
                     }}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 hover:text-[#798321] hover:bg-[#798321]/10 dark:hover:text-[#FFC107] transition"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 hover:text-[#FFC107] hover:bg-[#FFC107]/10 transition"
                     title="Edit Header Name"
                   >
                     <Edit3 size={14} />
                   </button>
 
-                  {/* Delete Header Button */}
                   {categories.length > 1 && (
                     <button
                       onClick={() => handleDeleteCategorySubmit(cat.id)}
@@ -403,22 +627,18 @@ export default function AdminCausesPage() {
             {/* Sub-Causes Listing Section */}
             {activeCategoryData && (
               <div className="space-y-6">
-                <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900 p-4 sm:p-6">
-                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 dark:border-zinc-800">
+                <div className="overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 p-4 sm:p-6">
+                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-zinc-800">
                     <div>
-                      <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                        Header: {activeCategoryData.name}
-                      </h2>
-                      <p className="text-xs text-slate-400">Manage sub-items, update costs, and save image proofs.</p>
+                      <h2 className="text-lg font-bold text-white">Header: {activeCategoryData.name}</h2>
+                      <p className="text-xs text-slate-400">Manage baseline sub-causes and per-member baseline costs.</p>
                     </div>
                   </div>
 
                   {!activeCategoryData.subCauses || activeCategoryData.subCauses.length === 0 ? (
                     <div className="py-20 text-center space-y-3">
-                      <Layers size={40} className="mx-auto text-slate-300 dark:text-zinc-700" />
-                      <p className="text-xs font-bold text-slate-500 dark:text-zinc-400">
-                        No sub-items added under this header yet.
-                      </p>
+                      <Layers size={40} className="mx-auto text-zinc-700" />
+                      <p className="text-xs font-bold text-zinc-400">No sub-items added under this header yet.</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
@@ -426,12 +646,12 @@ export default function AdminCausesPage() {
                         <motion.div
                           key={sub.id}
                           whileHover={{ y: -2 }}
-                          className="relative flex flex-col sm:flex-row items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-zinc-800 dark:bg-zinc-800/50"
+                          className="relative flex flex-col sm:flex-row items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-800/50 p-4"
                         >
                           <div className="absolute top-2 right-2 flex items-center gap-1">
                             <button
                               onClick={() => openEditModal(sub)}
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:text-[#798321] hover:bg-[#798321]/10 dark:hover:text-[#FFC107] transition"
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:text-[#FFC107] hover:bg-[#FFC107]/10 transition"
                               title="Edit Sub-Item"
                             >
                               <Edit3 size={13} />
@@ -446,7 +666,7 @@ export default function AdminCausesPage() {
                             </button>
                           </div>
 
-                          <div className="relative group h-24 w-24 shrink-0 rounded-xl overflow-hidden border border-slate-200 dark:border-zinc-700 bg-slate-200">
+                          <div className="relative group h-24 w-24 shrink-0 rounded-xl overflow-hidden border border-zinc-700 bg-zinc-800">
                             <img src={sub.image || "/banner1.png"} alt={sub.name} className="h-full w-full object-cover" />
                             <label className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                               <ImageIcon size={18} className="mb-1" />
@@ -461,21 +681,16 @@ export default function AdminCausesPage() {
                           </div>
 
                           <div className="flex-1 w-full space-y-2 text-center sm:text-left pr-4">
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
-                              {sub.name}
-                            </h3>
-
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-white">{sub.name}</h3>
                             <div className="flex items-center justify-center sm:justify-start gap-2">
-                              <span className="text-[11px] font-bold text-slate-500">Cost (₹):</span>
+                              <span className="text-[11px] font-bold text-slate-400">Base Cost (₹):</span>
                               <div className="relative w-32">
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-2.5 text-slate-400 text-xs">
-                                  ₹
-                                </span>
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-2.5 text-slate-400 text-xs">₹</span>
                                 <input
                                   type="number"
                                   value={sub.cost}
                                   onChange={(e) => handleCostChange(sub.id, Number(e.target.value))}
-                                  className="w-full rounded-xl border border-slate-200 bg-white py-1.5 pl-7 pr-3 text-xs font-bold text-slate-900 focus:border-[#798321] focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                                  className="w-full rounded-xl border border-zinc-700 bg-zinc-900 py-1.5 pl-7 pr-3 text-xs font-bold text-white focus:border-[#FFC107] focus:outline-none"
                                 />
                               </div>
                             </div>
@@ -487,9 +702,9 @@ export default function AdminCausesPage() {
                 </div>
 
                 {/* Add Sub-Item Form */}
-                <div className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                    <Plus size={16} className="text-[#798321] dark:text-[#FFC107]" /> Add Sub-Item to &quot;{activeCategoryData.name}&quot;
+                <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-4 sm:p-6 shadow-sm">
+                  <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                    <Plus size={16} className="text-[#FFC107]" /> Add Sub-Item to &quot;{activeCategoryData.name}&quot;
                   </h3>
                   <form onSubmit={handleAddSubCauseSubmit} className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
                     <div>
@@ -501,29 +716,29 @@ export default function AdminCausesPage() {
                         required
                         value={newSubName}
                         onChange={(e) => setNewSubName(e.target.value)}
-                        placeholder="e.g. Paneer Biryani"
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-2.5 px-4 text-xs font-medium text-slate-800 focus:border-[#798321] focus:outline-none dark:border-zinc-800 dark:bg-zinc-800 dark:text-white"
+                        placeholder="e.g. Nutritious Meal"
+                        className="w-full rounded-2xl border border-zinc-800 bg-zinc-800 py-2.5 px-4 text-xs font-medium text-white focus:border-[#FFC107] focus:outline-none"
                       />
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                        Cost per Person (₹)
+                        Base Cost per Member (₹)
                       </label>
                       <input
                         type="number"
                         required
                         value={newSubCost}
                         onChange={(e) => setNewSubCost(e.target.value)}
-                        placeholder="e.g. 90"
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-2.5 px-4 text-xs font-medium text-slate-800 focus:border-[#798321] focus:outline-none dark:border-zinc-800 dark:bg-zinc-800 dark:text-white"
+                        placeholder="e.g. 100"
+                        className="w-full rounded-2xl border border-zinc-800 bg-zinc-800 py-2.5 px-4 text-xs font-medium text-white focus:border-[#FFC107] focus:outline-none"
                       />
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                        Photo Proof Upload
+                        Photo Proof
                       </label>
-                      <label className="flex items-center justify-center gap-2 w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-2.5 px-4 text-xs font-semibold text-slate-600 cursor-pointer hover:bg-slate-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-slate-300 dark:hover:bg-zinc-800/70">
-                        <ImageIcon size={14} className="text-[#798321] dark:text-[#FFC107]" />
+                      <label className="flex items-center justify-center gap-2 w-full rounded-2xl border border-dashed border-zinc-700 bg-zinc-800 py-2.5 px-4 text-xs font-semibold text-slate-300 cursor-pointer hover:bg-zinc-800/70">
+                        <ImageIcon size={14} className="text-[#FFC107]" />
                         <span className="truncate">Choose Photo</span>
                         <input
                           type="file"
@@ -542,9 +757,9 @@ export default function AdminCausesPage() {
                       <button
                         type="submit"
                         disabled={isPending}
-                        className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-[#798321] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:opacity-90 disabled:opacity-50 dark:bg-[#FFC107] dark:text-black"
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-[#FFC107] px-4 py-2.5 text-xs font-bold text-black shadow-sm transition hover:opacity-90 disabled:opacity-50"
                       >
-                        <Plus size={14} /> Save to Supabase
+                        <Plus size={14} /> Save Sub-Item
                       </button>
                     </div>
                   </form>
@@ -555,7 +770,7 @@ export default function AdminCausesPage() {
         )}
       </main>
 
-      {/* Edit Header / Category Modal */}
+      {/* Edit Header Modal */}
       <AnimatePresence>
         {editingCategory && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -563,15 +778,15 @@ export default function AdminCausesPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 space-y-6"
+              className="w-full max-w-md rounded-3xl bg-zinc-900 p-6 shadow-2xl border border-zinc-800 space-y-6"
             >
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-zinc-800">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Edit3 size={16} className="text-[#798321] dark:text-[#FFC107]" /> Edit Header Name
+              <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Edit3 size={16} className="text-[#FFC107]" /> Edit Header Name
                 </h3>
                 <button
                   onClick={() => setEditingCategory(null)}
-                  className="rounded-full p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800"
+                  className="rounded-full p-2 text-slate-400 hover:bg-zinc-800"
                 >
                   <X size={18} />
                 </button>
@@ -587,22 +802,22 @@ export default function AdminCausesPage() {
                     required
                     value={editCategoryNameInput}
                     onChange={(e) => setEditCategoryNameInput(e.target.value)}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-2.5 px-4 text-xs font-medium text-slate-800 focus:border-[#798321] focus:outline-none dark:border-zinc-800 dark:bg-zinc-800 dark:text-white"
+                    className="w-full rounded-2xl border border-zinc-800 bg-zinc-800 py-2.5 px-4 text-xs font-medium text-white focus:border-[#FFC107] focus:outline-none"
                   />
                 </div>
 
-                <div className="pt-2 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-end gap-2">
+                <div className="pt-2 border-t border-zinc-800 flex items-center justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => setEditingCategory(null)}
-                    className="rounded-xl bg-slate-100 px-5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200 dark:bg-zinc-800 dark:text-zinc-300"
+                    className="rounded-xl bg-zinc-800 px-5 py-2 text-xs font-bold text-zinc-300"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isPending}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#798321] px-5 py-2 text-xs font-bold text-white shadow-sm transition hover:opacity-90 disabled:opacity-50 dark:bg-[#FFC107] dark:text-black"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FFC107] px-5 py-2 text-xs font-bold text-black shadow-sm transition hover:opacity-90 disabled:opacity-50"
                   >
                     Save Changes
                   </button>
@@ -621,15 +836,15 @@ export default function AdminCausesPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 space-y-6"
+              className="w-full max-w-md rounded-3xl bg-zinc-900 p-6 shadow-2xl border border-zinc-800 space-y-6"
             >
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-zinc-800">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Edit3 size={16} className="text-[#798321] dark:text-[#FFC107]" /> Edit Sub-Item
+              <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Edit3 size={16} className="text-[#FFC107]" /> Edit Sub-Item
                 </h3>
                 <button
                   onClick={() => setEditingSub(null)}
-                  className="rounded-full p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800"
+                  className="rounded-full p-2 text-slate-400 hover:bg-zinc-800"
                 >
                   <X size={18} />
                 </button>
@@ -645,36 +860,36 @@ export default function AdminCausesPage() {
                     required
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-2.5 px-4 text-xs font-medium text-slate-800 focus:border-[#798321] focus:outline-none dark:border-zinc-800 dark:bg-zinc-800 dark:text-white"
+                    className="w-full rounded-2xl border border-zinc-800 bg-zinc-800 py-2.5 px-4 text-xs font-medium text-white focus:border-[#FFC107] focus:outline-none"
                   />
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                    Cost per Person (₹)
+                    Cost per Member (₹)
                   </label>
                   <input
                     type="number"
                     required
                     value={editCost}
                     onChange={(e) => setEditCost(e.target.value)}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-2.5 px-4 text-xs font-medium text-slate-800 focus:border-[#798321] focus:outline-none dark:border-zinc-800 dark:bg-zinc-800 dark:text-white"
+                    className="w-full rounded-2xl border border-zinc-800 bg-zinc-800 py-2.5 px-4 text-xs font-medium text-white focus:border-[#FFC107] focus:outline-none"
                   />
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                    Change Image URL / Upload New
+                    Change Image
                   </label>
                   <div className="flex items-center gap-3">
                     <img
                       src={editImage || "/banner1.png"}
                       alt="Preview"
-                      className="h-12 w-12 rounded-xl object-cover border border-slate-200 dark:border-zinc-800"
+                      className="h-12 w-12 rounded-xl object-cover border border-zinc-800"
                     />
-                    <label className="flex-1 flex items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-2.5 px-4 text-xs font-semibold text-slate-600 cursor-pointer hover:bg-slate-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-slate-300 dark:hover:bg-zinc-800/70">
-                      <ImageIcon size={14} className="text-[#798321] dark:text-[#FFC107]" />
-                      <span className="truncate">Upload New File</span>
+                    <label className="flex-1 flex items-center justify-center gap-2 rounded-2xl border border-dashed border-zinc-700 bg-zinc-800 py-2.5 px-4 text-xs font-semibold text-slate-300 cursor-pointer hover:bg-zinc-800/70">
+                      <ImageIcon size={14} className="text-[#FFC107]" />
+                      <span className="truncate">Upload New Photo</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -690,18 +905,18 @@ export default function AdminCausesPage() {
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-end gap-2">
+                <div className="pt-2 border-t border-zinc-800 flex items-center justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => setEditingSub(null)}
-                    className="rounded-xl bg-slate-100 px-5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200 dark:bg-zinc-800 dark:text-zinc-300"
+                    className="rounded-xl bg-zinc-800 px-5 py-2 text-xs font-bold text-zinc-300"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isPending}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#798321] px-5 py-2 text-xs font-bold text-white shadow-sm transition hover:opacity-90 disabled:opacity-50 dark:bg-[#FFC107] dark:text-black"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FFC107] px-5 py-2 text-xs font-bold text-black shadow-sm transition hover:opacity-90 disabled:opacity-50"
                   >
                     Save Changes
                   </button>

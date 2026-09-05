@@ -442,7 +442,11 @@ function VolunteerFormContent() {
                   className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#798321] to-[#FFC107] px-6 py-4 text-sm font-bold text-white shadow-lg transition-all hover:opacity-95 active:scale-95 disabled:opacity-50 dark:text-black"
                 >
                   <LogIn size={18} />
-                  <span>{submitting ? "Logging In..." : "Login"}</span>
+                  {submitting ? (
+                    <span key="submitting-state">Logging In...</span>
+                  ) : (
+                    <span key="idle-state">Login</span>
+                  )}
                 </button>
               </div>
             </form>
@@ -815,7 +819,11 @@ function VolunteerFormContent() {
                   className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#798321] to-[#FFC107] px-6 py-4 text-sm font-bold text-white shadow-lg transition-all hover:opacity-95 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed dark:text-black"
                 >
                   <Users size={18} />
-                  <span>{submitting ? "Submitting Registration..." : "Join Now"}</span>
+                  {submitting ? (
+                    <span key="reg-submitting">Submitting Registration...</span>
+                  ) : (
+                    <span key="reg-idle">Join Now</span>
+                  )}
                 </button>
               </div>
             </form>

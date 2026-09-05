@@ -19,6 +19,8 @@ import {
   Globe,
 } from "lucide-react";
 
+import LanguageTranslator from "@/components/foundation/LanguageTranslator";
+
 const display = Fraunces({
   subsets: ["latin"],
   weight: ["500", "600", "700"],
@@ -64,16 +66,22 @@ export default function VolunteerDashboardLayout({
   ];
 
   return (
-    <div className={`fixed inset-0 z-[100] flex h-[100dvh] w-full overflow-hidden bg-slate-50 dark:bg-[#0a0a0a] ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
+    <div className={`fixed inset-0 z-[100] flex h-[100dvh] w-full overflow-hidden bg-slate-50 dark:bg-black ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
       
       {/* Mobile Menu Button */}
       {/* FIX: Changed right-4 to left-4 to move it to the opposite side */}
       <button 
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         className="lg:hidden fixed top-4 left-4 z-[120] p-2 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-white"
+        aria-label="Toggle navigation menu"
       >
         {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
+
+      {/* Mobile Language Switcher */}
+      <div className="lg:hidden fixed top-4 right-4 z-[120]">
+        <LanguageTranslator variant="desktop" />
+      </div>
 
       {/* Sidebar */}
       <aside className={`
@@ -114,6 +122,12 @@ export default function VolunteerDashboardLayout({
             >
               <X size={18} />
             </button>
+          </div>
+
+          {/* Language Switcher in Sidebar */}
+          <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-900 flex items-center justify-between bg-slate-50/50 dark:bg-neutral-900/30 shrink-0">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">Language</span>
+            <LanguageTranslator variant="desktop" />
           </div>
 
           {/* Navigation Links */}

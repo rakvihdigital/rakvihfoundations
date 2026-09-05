@@ -20,8 +20,10 @@ const display = Fraunces({
 
 export default function GatewayPage() {
   return (
-    // Swapped dark:text-slate-100 to dark:text-neutral-100 to remove blue tint from text
-    <div className={`min-h-[100dvh] w-full overflow-y-auto overflow-x-hidden flex flex-col items-center justify-center bg-[#F8FAF0] text-slate-900 dark:bg-black dark:text-neutral-100 ${display.variable}`}>
+    <div 
+      translate="no"
+      className={`notranslate min-h-[100dvh] w-full overflow-y-auto overflow-x-hidden flex flex-col items-center justify-center bg-[#F8FAF0] text-slate-900 dark:bg-black dark:text-neutral-100 ${display.variable}`}
+    >
 
       {/* HERO SECTION */}
       <section className="relative shrink-0 py-4 sm:py-8 overflow-hidden">

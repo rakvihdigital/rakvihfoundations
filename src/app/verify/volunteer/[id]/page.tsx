@@ -110,7 +110,7 @@ export default function VolunteerVerificationPage() {
   const dobDate = volunteer.dob ? new Date(volunteer.dob).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : "N/A";
 
   return (
-    <div className={`min-h-screen bg-slate-50 dark:bg-[#0B1220] ${display.variable} pb-20`} style={{ fontFamily: "var(--font-display)" }}>
+    <div className={`min-h-screen bg-slate-50 dark:bg-black ${display.variable} pb-20`} style={{ fontFamily: "var(--font-display)" }}>
       
       {/* Verification Status Banner */}
       <div className={`w-full py-3 px-4 flex items-center justify-center gap-2 shadow-sm ${isApproved ? 'bg-emerald-600' : 'bg-amber-500'}`}>

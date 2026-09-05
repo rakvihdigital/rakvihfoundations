@@ -126,9 +126,48 @@ export default function LanguageTranslator({ variant = "desktop" }: LanguageTran
 
   const activeLangObj = SUPPORTED_LANGUAGES.find((l) => l.code === currentLang) || SUPPORTED_LANGUAGES[0];
 
+  const globalTranslateStyles = (
+    <>
+      {/* Hidden container for Google Translate widget */}
+      <div id="google_translate_element" className="hidden" aria-hidden="true" />
+
+      {/* Global CSS to suppress Google toolbar clutter */}
+      <style jsx global>{`
+        .goog-te-banner-frame.skiptranslate,
+        .goog-te-banner-frame,
+        iframe.goog-te-banner-frame,
+        #goog-gt-tt,
+        .goog-te-balloon-frame,
+        .VIpgJd-ZVi9od-OR9Mb-Oxf5Fd,
+        .VIpgJd-ZVi9od-l4eHX-hSRWhd,
+        .VIpgJd-ZVi9od-aZ2wEe-wOHMyf {
+          display: none !important;
+          visibility: hidden !important;
+        }
+        body,
+        body.translated-ltr,
+        body.translated-rtl {
+          top: 0px !important;
+          position: static !important;
+        }
+        .skiptranslate > iframe {
+          display: none !important;
+        }
+        .goog-text-highlight {
+          background: none !important;
+          box-shadow: none !important;
+        }
+        #google_translate_element {
+          display: none !important;
+        }
+      `}</style>
+    </>
+  );
+
   if (variant === "mobile") {
     return (
-      <div className="w-full space-y-2 pt-2 border-t border-slate-200 dark:border-neutral-800">
+      <div className="w-full space-y-2 pt-2 border-t border-slate-200 dark:border-neutral-800 notranslate" translate="no">
+        {globalTranslateStyles}
         <div className="flex items-center gap-2 px-1 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400">
           <Globe size={14} className="text-[#798321] dark:text-[#FFC107]" />
           <span>Language / மொழி / భాష</span>
@@ -163,50 +202,19 @@ export default function LanguageTranslator({ variant = "desktop" }: LanguageTran
 
   return (
     <div className="relative notranslate shrink-0" translate="no" ref={dropdownRef}>
-      {/* Hidden container for Google Translate widget */}
-      <div id="google_translate_element" className="hidden" aria-hidden="true" />
-
-      {/* Global CSS to suppress Google toolbar clutter */}
-      <style jsx global>{`
-        .goog-te-banner-frame.skiptranslate,
-        .goog-te-banner-frame,
-        iframe.goog-te-banner-frame,
-        #goog-gt-tt,
-        .goog-te-balloon-frame,
-        .VIpgJd-ZVi9od-OR9Mb-Oxf5Fd,
-        .VIpgJd-ZVi9od-l4eHX-hSRWhd,
-        .VIpgJd-ZVi9od-aZ2wEe-wOHMyf {
-          display: none !important;
-          visibility: hidden !important;
-        }
-        body,
-        body.translated-ltr,
-        body.translated-rtl {
-          top: 0px !important;
-          position: static !important;
-        }
-        .skiptranslate > iframe {
-          display: none !important;
-        }
-        .goog-text-highlight {
-          background: none !important;
-          box-shadow: none !important;
-        }
-        #google_translate_element {
-          display: none !important;
-        }
-      `}</style>
+      {globalTranslateStyles}
 
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Select Language"
-        className="flex h-9 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 sm:px-3 text-xs font-semibold text-slate-700 transition-all hover:bg-slate-100 hover:border-slate-300 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800 dark:hover:border-neutral-700 sm:h-9.5 sm:text-sm shrink-0 whitespace-nowrap"
+        className="flex h-8 sm:h-9 items-center gap-1 sm:gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2 sm:px-3 text-xs font-semibold text-slate-700 transition-all hover:bg-slate-100 hover:border-slate-300 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800 dark:hover:border-neutral-700 sm:text-sm shrink-0 whitespace-nowrap"
       >
-        <Globe size={15} className="text-[#798321] dark:text-[#FFC107] shrink-0" />
-        <span className="font-bold tracking-tight">{activeLangObj.nativeName}</span>
+        <Globe size={14} className="text-[#798321] dark:text-[#FFC107] shrink-0" />
+        <span className="max-sm:hidden font-bold tracking-tight">{activeLangObj.nativeName}</span>
+        <span className="sm:hidden font-bold tracking-tight text-[11px]">{activeLangObj.shortLabel}</span>
         <ChevronDown
-          size={13}
+          size={12}
           className={`text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>

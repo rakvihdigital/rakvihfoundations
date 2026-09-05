@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import ThemeProvider from "@/components/ThemeProvider";
+import TranslationRouteGuard from "@/components/TranslationRouteGuard";
 
 import "./globals.css";
 
@@ -24,6 +25,13 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -35,9 +43,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
-      {/* Added suppressHydrationWarning here */}
-      <body className="min-h-screen overflow-x-clip max-w-[100vw]" suppressHydrationWarning>
+      <body className="min-h-screen overflow-x-clip max-w-[100vw] bg-white dark:bg-black text-slate-900 dark:text-neutral-100" suppressHydrationWarning>
         <ThemeProvider>
+          <TranslationRouteGuard />
           {children}
           <Toaster position="top-right" />
         </ThemeProvider>

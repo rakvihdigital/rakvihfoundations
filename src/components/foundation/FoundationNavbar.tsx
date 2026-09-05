@@ -156,29 +156,29 @@ export default function FoundationNavbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-[999] w-full border-b border-slate-200 bg-white/90 backdrop-blur-md dark:border-neutral-800 dark:bg-black/90 transition-colors duration-500 ${display.variable}`}
     >
-      <div className="mx-auto flex h-[88px] sm:h-[94px] max-w-[1440px] items-center justify-between px-3 sm:px-4 lg:px-6 gap-2 xl:gap-4">
+      <div className="mx-auto flex h-[80px] sm:h-[94px] max-w-[1440px] items-center justify-between px-2.5 sm:px-4 lg:px-6 gap-1.5 sm:gap-2 xl:gap-4">
         
         {/* Left: Back Arrow & Logo */}
-        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0 min-w-0">
           <button
             onClick={handleBack}
-            className="flex h-9 w-9 sm:h-9.5 sm:w-9.5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700"
+            className="flex h-8 w-8 sm:h-9.5 sm:w-9.5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700"
             title="Go back"
             aria-label="Go back"
           >
-            <ArrowLeft size={18} />
+            <ArrowLeft size={16} />
           </button>
 
           <Link href="/foundation" className="group flex items-center bg-transparent">
-            <div className="relative h-[68px] w-[195px] shrink-0 min-[400px]:w-[220px] sm:h-[76px] sm:w-[250px] md:h-[80px] md:w-[265px] lg:w-[250px] xl:h-[84px] xl:w-[290px] bg-transparent">
+            <div className="relative h-[50px] w-[125px] min-[360px]:w-[140px] min-[400px]:w-[165px] sm:h-[76px] sm:w-[250px] md:h-[80px] md:w-[265px] lg:w-[250px] xl:h-[84px] xl:w-[290px] bg-transparent shrink-0">
               <Image
                 src="/rakvih-foundation.png"
                 alt="RAKVIH Foundation Logo"
                 fill
                 priority
                 unoptimized
-                sizes="(max-width: 640px) 220px, 290px"
-                className="object-contain object-left scale-115 sm:scale-120 origin-left transition-transform duration-300 group-hover:scale-125 !bg-transparent"
+                sizes="(max-width: 640px) 165px, 290px"
+                className="object-contain object-left scale-105 sm:scale-120 origin-left transition-transform duration-300 group-hover:scale-125 !bg-transparent"
               />
             </div>
           </Link>
@@ -300,16 +300,16 @@ export default function FoundationNavbar() {
         </nav>
 
         {/* Right: Controls (shrink-0, perfectly positioned) */}
-        <div className="flex items-center gap-1.5 sm:gap-2 xl:gap-2.5 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 xl:gap-2.5 shrink-0">
           <LanguageTranslator variant="desktop" />
 
           <button
             onClick={toggleTheme}
             aria-label="Toggle Theme"
-            className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:bg-slate-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700 sm:h-9.5 sm:w-9.5 shrink-0"
+            className="relative flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:bg-slate-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700 shrink-0"
           >
             {!mounted ? (
-              <div className="h-[18px] w-[18px]" />
+              <div className="h-[16px] w-[16px]" />
             ) : (
               <AnimatePresence mode="wait" initial={false}>
                 <motion.span
@@ -320,7 +320,7 @@ export default function FoundationNavbar() {
                   transition={{ duration: 0.2 }}
                   className="flex items-center justify-center"
                 >
-                  {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+                  {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
                 </motion.span>
               </AnimatePresence>
             )}
@@ -373,13 +373,13 @@ export default function FoundationNavbar() {
             </div>
           )}
 
-          {/* Mobile Hamburger Toggle */}
+          {/* Mobile Hamburger Toggle (Always visible, shrink-0, priority!) */}
           <button
             onClick={() => setOpen(!open)}
             aria-label="Toggle Menu"
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:bg-slate-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700 lg:hidden shrink-0"
+            className="flex h-8.5 w-8.5 sm:h-9.5 sm:w-9.5 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-700 transition-colors hover:bg-slate-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700 lg:hidden shrink-0 shadow-sm"
           >
-            {open ? <X size={20} /> : <Menu size={20} />}
+            {open ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
       </div>

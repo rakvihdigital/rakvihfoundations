@@ -53,8 +53,8 @@ const body = Manrope({
 });
 
 const slides = [
-  { src: "/banner3.jpeg", alt: "Healthcare outreach camp organized by Rakvih Foundation" },
-  { src: "/banner4.png", alt: "Volunteers serving the community with Rakvih Foundation" },
+  { src: "/banner-healthcare.jpg", alt: "Healthcare outreach and wellness camp by Rakvih Foundation" },
+  { src: "/banner-volunteers.jpg", alt: "Volunteers serving fresh meals and care packages with Rakvih Foundation" },
   { src: "/banner1.png", alt: "Community meal distribution by Rakvih Foundation" },
   { src: "/banner2.jpg", alt: "Children supported through Rakvih Foundation education programs" },
 ];
@@ -190,7 +190,7 @@ export default function HomeClient({ causes, gallery }: Props) {
               fill
               priority={i === 0}
               sizes="100vw"
-              className="object-cover"
+              className="object-cover object-center sm:object-[center_35%]"
             />
           </div>
         ))}

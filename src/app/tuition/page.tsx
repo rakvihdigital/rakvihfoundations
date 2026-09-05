@@ -127,11 +127,11 @@ export default function TuitionPage() {
       <Navbar />
 
       {/* ============ HERO ============ */}
-      <section className="relative overflow-hidden bg-[#F8FAF0] pt-[110px] dark:bg-black transition-colors duration-500">
+      <section className="relative overflow-hidden bg-[#F8FAF0] pt-[85px] sm:pt-[95px] dark:bg-black transition-colors duration-500">
         <div aria-hidden className="pointer-events-none absolute -right-32 -top-24 h-[420px] w-[420px] rounded-full bg-[#FFC107]/15 blur-3xl dark:bg-[#FFC107]/10" />
         <div aria-hidden className="pointer-events-none absolute -left-24 top-40 h-[300px] w-[300px] rounded-full bg-[#798321]/10 blur-3xl" />
 
-        <div className="mx-auto grid max-w-[1200px] grid-cols-1 items-center gap-12 px-6 py-16 lg:grid-cols-[1.15fr_0.85fr] lg:px-8 lg:py-24">
+        <div className="mx-auto grid max-w-[1200px] grid-cols-1 items-center gap-10 px-6 py-10 lg:grid-cols-[1.15fr_0.85fr] lg:px-8 lg:py-16">
           
           <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, ease: [0.23, 1, 0.32, 1] }} className="flex flex-col">
             
@@ -140,13 +140,13 @@ export default function TuitionPage() {
               <span className="inline-flex items-center gap-2 rounded-full border border-[#798321]/25 bg-white/70 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-[#798321] dark:bg-white/5 dark:text-[#FFC107]">
                 Verified, Fast, and Transparent
               </span>
-              <h1 style={{ fontFamily: "var(--font-display)" }} className="mt-5 text-[2.5rem] font-medium leading-[1.08] tracking-tight text-[#24310F] dark:text-white sm:text-[3.25rem]">
+              <h1 style={{ fontFamily: "var(--font-display)" }} className="mt-3 text-[2.25rem] font-medium leading-[1.08] tracking-tight text-[#24310F] dark:text-white sm:text-[3rem]">
                 Find the Right <span className="italic text-[#798321] dark:text-[#FFC107]">Tutor</span> for Your Child
               </h1>
-              <p className="mt-5 max-w-lg text-[17px] leading-relaxed text-gray-600 dark:text-neutral-300">
+              <p className="mt-3 max-w-lg text-[15px] sm:text-[16px] leading-relaxed text-gray-600 dark:text-neutral-300">
                 Tell RAKVIH what your child needs—subject, grade, and schedule—and we match a verified teacher within 24 hours on average. You approve the schedule, choose home visits, online classes, or our learning centre, and pay securely online with the fee shown upfront. No cash handling, no hidden charges, no guesswork.
               </p>
-              <div className="mt-6">
+              <div className="mt-4">
                 <button type="button" onClick={() => goToApply("tuition")} className="rounded-xl bg-gradient-to-r from-[#798321] to-[#FFC107] px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#798321]/30 transition-transform hover:-translate-y-0.5 dark:text-black">
                   Apply for Tuition
                 </button>
@@ -154,20 +154,20 @@ export default function TuitionPage() {
             </div>
 
             {/* Divider line between the two sections */}
-            <div className="my-10 h-px w-full max-w-md bg-gradient-to-r from-[#E8ECE5] to-transparent dark:from-neutral-800" />
+            <div className="my-6 h-px w-full max-w-md bg-gradient-to-r from-[#E8ECE5] to-transparent dark:from-neutral-800" />
 
             {/* 🚀 TEACHER SECTION */}
             <div>
               <span className="inline-flex items-center gap-2 rounded-full border border-[#798321]/25 bg-white/70 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-[#798321] dark:bg-white/5 dark:text-[#FFC107]">
                 For Teachers
               </span>
-              <h2 style={{ fontFamily: "var(--font-display)" }} className="mt-5 text-[2.25rem] font-medium leading-[1.08] tracking-tight text-[#24310F] dark:text-white sm:text-[2.75rem]">
+              <h2 style={{ fontFamily: "var(--font-display)" }} className="mt-3 text-[2rem] font-medium leading-[1.08] tracking-tight text-[#24310F] dark:text-white sm:text-[2.5rem]">
                 Grow Your <span className="italic text-[#798321] dark:text-[#FFC107]">Student Base</span>
               </h2>
-              <p className="mt-5 max-w-lg text-[17px] leading-relaxed text-gray-600 dark:text-neutral-300">
+              <p className="mt-3 max-w-lg text-[15px] sm:text-[16px] leading-relaxed text-gray-600 dark:text-neutral-300">
                 Join RAKVIH's network of verified educators, set your preferred subjects and teaching mode, and get matched with families actively looking for a tutor like you with flexible home, online, or centre-based teaching options.
               </p>
-              <div className="mt-6 flex flex-wrap items-center gap-5">
+              <div className="mt-4 flex flex-wrap items-center gap-5">
                 <button type="button" onClick={() => goToApply("teacher")} className="rounded-xl border-2 border-[#798321] bg-white px-7 py-3.5 text-sm font-bold text-[#798321] transition-all hover:-translate-y-0.5 hover:bg-[#798321]/5 dark:border-[#FFC107] dark:bg-transparent dark:text-[#FFC107] dark:hover:bg-[#FFC107]/10">
                   Apply to Teach
                 </button>
@@ -193,15 +193,15 @@ export default function TuitionPage() {
       </section>
 
       {/* ============ HOW IT WORKS ============ */}
-      <section id="how-it-works" className="bg-white py-20 dark:bg-black transition-colors duration-500 sm:py-28">
+      <section id="how-it-works" className="bg-white py-12 dark:bg-black transition-colors duration-500 sm:py-16">
         <div className="mx-auto max-w-[1100px] px-6 lg:px-8">
           <div className="mx-auto max-w-xl text-center">
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#798321] dark:text-[#FFC107]">Process</span>
-            <h2 style={{ fontFamily: "var(--font-display)" }} className="mt-3 text-3xl font-medium text-[#24310F] dark:text-white sm:text-4xl">
+            <h2 style={{ fontFamily: "var(--font-display)" }} className="mt-2 text-3xl font-medium text-[#24310F] dark:text-white sm:text-4xl">
               For Parents: How It Works
             </h2>
           </div>
-          <div className="relative mt-16 grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="relative mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <div aria-hidden className="absolute left-0 right-0 top-8 hidden h-px bg-gradient-to-r from-transparent via-[#798321]/30 to-transparent lg:block" />
             {steps.map((step, i) => {
               const Icon = step.icon;
@@ -211,7 +211,7 @@ export default function TuitionPage() {
                     <Icon size={26} strokeWidth={2} />
                     <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#FFC107] text-[11px] font-bold text-black shadow">{i + 1}</span>
                   </div>
-                  <h3 className="mt-5 text-base font-bold text-[#24310F] dark:text-white">{step.title}</h3>
+                  <h3 className="mt-4 text-base font-bold text-[#24310F] dark:text-white">{step.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-gray-500 dark:text-neutral-400">{step.copy}</p>
                 </motion.div>
               );
@@ -221,9 +221,9 @@ export default function TuitionPage() {
       </section>
 
       {/* ============ WHY RAKVIH ============ */}
-      <section className="bg-[#F8FAF0] py-20 dark:bg-black transition-colors duration-500 sm:py-24">
+      <section className="bg-[#F8FAF0] py-12 dark:bg-black transition-colors duration-500 sm:py-16">
         <div className="mx-auto max-w-[1100px] px-6 lg:px-8">
-          <div className="mx-auto max-w-xl text-center mb-16">
+          <div className="mx-auto max-w-xl text-center mb-10">
             <h2 style={{ fontFamily: "var(--font-display)" }} className="text-3xl font-medium text-[#24310F] dark:text-white sm:text-4xl">
               Why Parents Trust RAKVIH Tuition
             </h2>
@@ -234,7 +234,7 @@ export default function TuitionPage() {
               return (
                 <div key={point.title} className="rounded-2xl border border-[#E8ECE5] bg-white p-6 dark:border-neutral-800 dark:bg-[#0a0a0a]">
                   <Icon size={22} className="text-[#798321] dark:text-[#FFC107]" />
-                  <h3 className="mt-4 font-bold text-[#24310F] dark:text-white">{point.title}</h3>
+                  <h3 className="mt-3 font-bold text-[#24310F] dark:text-white">{point.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-gray-500 dark:text-neutral-400">{point.copy}</p>
                 </div>
               );
@@ -244,11 +244,11 @@ export default function TuitionPage() {
       </section>
 
       {/* ============ APPLICATION FORMS ============ */}
-      <section id="apply" ref={applyRef} className="bg-white py-20 dark:bg-black transition-colors duration-500 sm:py-28">
+      <section id="apply" ref={applyRef} className="bg-white py-12 dark:bg-black transition-colors duration-500 sm:py-16">
         <div className="mx-auto max-w-2xl px-6 lg:px-8">
           <div className="text-center">
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#798321] dark:text-[#FFC107]">Get started</span>
-            <h2 style={{ fontFamily: "var(--font-display)" }} className="mt-3 text-3xl font-medium text-[#24310F] dark:text-white">
+            <h2 style={{ fontFamily: "var(--font-display)" }} className="mt-2 text-3xl font-medium text-[#24310F] dark:text-white">
               {activeForm === "tuition" ? "Apply for tuition" : "Apply to teach"}
             </h2>
             <p className="mt-2 text-gray-600 dark:text-neutral-300">
@@ -256,12 +256,12 @@ export default function TuitionPage() {
             </p>
           </div>
 
-          <div className="mx-auto mt-8 flex max-w-xs items-center gap-1 rounded-xl border border-[#E8ECE5] bg-[#F8FAF0] p-1.5 dark:border-neutral-800 dark:bg-[#0a0a0a]">
+          <div className="mx-auto mt-6 flex max-w-xs items-center gap-1 rounded-xl border border-[#E8ECE5] bg-[#F8FAF0] p-1.5 dark:border-neutral-800 dark:bg-[#0a0a0a]">
             <button type="button" onClick={() => setActiveForm("tuition")} className={`flex-1 rounded-lg px-4 py-2 text-sm font-bold transition-all ${activeForm === "tuition" ? "bg-white text-[#24310F] shadow-sm dark:bg-[#171717] dark:text-white" : "text-gray-500 hover:text-[#24310F] dark:text-neutral-400 dark:hover:text-white"}`}>For Parents</button>
             <button type="button" onClick={() => setActiveForm("teacher")} className={`flex-1 rounded-lg px-4 py-2 text-sm font-bold transition-all ${activeForm === "teacher" ? "bg-white text-[#24310F] shadow-sm dark:bg-[#171717] dark:text-white" : "text-gray-500 hover:text-[#24310F] dark:text-neutral-400 dark:hover:text-white"}`}>For Teachers</button>
           </div>
 
-          <div className="mt-8">
+          <div className="mt-6">
             {activeForm === "tuition" ? <TuitionApplyForm /> : <TeacherApplyForm />}
           </div>
         </div>
@@ -277,12 +277,14 @@ export default function TuitionPage() {
           padding: 0.65rem 0.9rem;
           font-size: 0.9rem;
           background: white;
+          color: #1e293b;
           outline: none;
           transition: border-color 0.2s, box-shadow 0.2s;
         }
         .tuition-field-input:focus {
           border-color: #798321;
           box-shadow: 0 0 0 2px rgba(121, 131, 33, 0.15);
+          background: white;
         }
         .tuition-field-input.has-error {
           border-color: #ef4444 !important;
@@ -292,6 +294,11 @@ export default function TuitionPage() {
           background: #0a0a0a;
           border-color: #262626;
           color: white;
+        }
+        :global(.dark) .tuition-field-input:focus {
+          background: #0a0a0a !important;
+          border-color: #FFC107;
+          box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.15);
         }
         :global(.dark) .tuition-field-input.has-error {
           border-color: #ef4444 !important;

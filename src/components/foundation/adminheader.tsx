@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -36,7 +37,6 @@ const masterNavItems = [
       { id: "volunteers", name: "Manage Volunteers", href: "/adminfoundations/volunteers" },
       { id: "approvals", name: "Event Approvals", href: "/adminfoundations/volunteers/approvals" },
       { id: "events", name: "Manage Events", href: "/adminfoundations/volunteers/events" },
-      { id: "log-hours", name: "Log Hours", href: "/adminfoundations/volunteers/hours" },
       { id: "announcements", name: "Notice Board", href: "/adminfoundations/volunteers/announcements" },
     ]
   },
@@ -128,8 +128,19 @@ export default function AdminSidebar() {
           <button onClick={() => setIsMobileOpen(true)} className="p-2 -ml-2 text-white hover:bg-zinc-900 rounded-lg">
             <Menu size={20} />
           </button>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFC107]/10 p-1">
-            <img src="/logosqunobg.png" alt="Logo" className="h-full w-full object-contain" />
+          <div className="relative h-10 w-10 shrink-0 flex items-center justify-center overflow-visible">
+            <Image
+              src="/images/logo-dark.png"
+              alt="RAKVIH Foundation"
+              width={64}
+              height={64}
+              priority
+              className="h-full w-full object-contain scale-[1.65] origin-center"
+            />
+          </div>
+          <div className="pl-1">
+            <span className="block text-xs font-bold text-white leading-tight">RAKVIH Foundation</span>
+            <span className="block text-[9px] font-bold text-[#FFC107] uppercase">Admin Portal</span>
           </div>
         </div>
         <button onClick={handleLogout} className="text-xs font-bold text-red-500 bg-red-500/10 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
@@ -152,13 +163,24 @@ export default function AdminSidebar() {
         
         {/* Sidebar Header / Logo */}
         <div className="h-20 shrink-0 border-b border-zinc-800/80 px-6 flex items-center justify-between">
-          <Link href="/adminfoundations" className="flex items-center gap-3" onClick={() => setIsMobileOpen(false)}>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FFC107]/10 p-1.5">
-              <img src="/logosqunobg.png" alt="Logo" className="h-full w-full object-contain" />
+          <Link href="/adminfoundations" className="flex items-center gap-3 min-w-0" onClick={() => setIsMobileOpen(false)}>
+            <div className="relative h-12 w-12 shrink-0 flex items-center justify-center overflow-visible">
+              <Image
+                src="/images/logo-dark.png"
+                alt="RAKVIH Foundation"
+                width={80}
+                height={80}
+                priority
+                className="h-full w-full object-contain scale-[1.75] origin-center"
+              />
             </div>
-            <div>
-              <span className="block text-xs font-black uppercase tracking-widest text-white">RAKVIH</span>
-              <span className="block text-[9px] font-bold text-[#FFC107] uppercase tracking-widest">Admin Portal</span>
+            <div className="leading-tight truncate pl-1">
+              <span className="block text-sm font-extrabold text-white tracking-tight">
+                RAKVIH Foundation
+              </span>
+              <span className="block text-[10px] font-bold text-[#FFC107] uppercase tracking-wider">
+                Admin Portal
+              </span>
             </div>
           </Link>
           <button onClick={() => setIsMobileOpen(false)} className="lg:hidden p-2 text-zinc-400 hover:text-white">
@@ -211,33 +233,49 @@ export default function AdminSidebar() {
         </div>
 
         {/* Sidebar Footer / User Profile */}
-        <div className="shrink-0 border-t border-zinc-800/80 p-4">
-          <div className="flex items-center gap-3 mb-4 px-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-800 text-zinc-300 font-bold">
-              {userName.charAt(0)}
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <p className="text-xs font-bold text-white truncate">{userName}</p>
-              
-              <div className="flex items-center gap-2 mt-0.5">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-[#FFC107] flex items-center gap-1">
-                  {userRole === "admin" ? <ShieldCheck size={10} /> : <ShieldAlert size={10} />}
-                  {userRole}
-                </p>
-                
-                {/* Official Staff ID Displayed Right Here! */}
-                {staffId && (
-                  <span className="text-[8px] font-mono font-bold bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded">
-                    {staffId}
-                  </span>
-                )}
+        {(() => {
+          const isMasterOrAdmin = userRole === "admin" || userName.toLowerCase().includes("master") || (userRole === "admin" && (!userName || userName === "Staff Member"));
+          const displayName = isMasterOrAdmin ? "Admin" : userName;
+          const avatarChar = (displayName.charAt(0) || "A").toUpperCase();
+
+          return (
+            <div className="shrink-0 border-t border-zinc-800/80 p-4">
+              <div className="flex items-center gap-3 mb-4 px-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FFC107]/10 text-[#FFC107] font-bold text-sm">
+                  {avatarChar}
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  {userRole === "admin" ? (
+                    // Only one single "Admin" entry shown for admin
+                    <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <ShieldCheck size={14} className="text-[#FFC107]" />
+                      Admin
+                    </p>
+                  ) : (
+                    // For staff: show name and role with staff ID
+                    <>
+                      <p className="text-xs font-bold text-white truncate">{displayName}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-[#FFC107] flex items-center gap-1">
+                          <ShieldAlert size={10} />
+                          {userRole}
+                        </p>
+                        {staffId && (
+                          <span className="text-[8px] font-mono font-bold bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded">
+                            {staffId}
+                          </span>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
+              <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-500/20">
+                <LogOut size={14} /> Logout
+              </button>
             </div>
-          </div>
-          <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-500/20">
-            <LogOut size={14} /> Logout
-          </button>
-        </div>
+          );
+        })()}
 
       </div>
     </>

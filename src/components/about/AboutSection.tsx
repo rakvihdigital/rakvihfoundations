@@ -15,9 +15,9 @@ export default function AboutSection() {
       className="
         relative
         overflow-hidden
-        py-12
-        sm:py-16
-        lg:py-20
+        py-10
+        sm:py-12
+        lg:py-14
         transition-all
         duration-500
 

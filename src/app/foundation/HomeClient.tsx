@@ -173,35 +173,9 @@ export default function HomeClient({ causes, gallery }: Props) {
 
   return (
     <div
-      className={`min-h-screen bg-[#F8FAF0] text-[#1C2410] dark:bg-black dark:text-slate-100 ${display.variable} ${body.variable}`}
+      className={`min-h-screen overflow-x-clip bg-[#F8FAF0] text-[#1C2410] dark:bg-black dark:text-slate-100 ${display.variable} ${body.variable}`}
       style={{ fontFamily: "var(--font-body)" }}
     >
-      {/* Nav */}
-      <header className="fixed top-0 z-50 w-full">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
-          <Link
-            href="/"
-            className="text-lg font-bold tracking-tight text-white"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            Rakvih Foundation
-          </Link>
-          <nav className="hidden items-center gap-8 text-sm font-semibold text-white/90 md:flex">
-            <Link href="/foundation/causes" className="hover:text-[#FFC107] transition">Causes</Link>
-            <Link href="/foundation/gallery" className="hover:text-[#FFC107] transition">Gallery</Link>
-            <Link href="/csr" className="hover:text-[#FFC107] transition">Partner With Us</Link>
-            <Link href="/foundation/volunteer" className="hover:text-[#FFC107] transition">Volunteer</Link>
-            <Link href="/contact" className="hover:text-[#FFC107] transition">Contact</Link>
-          </nav>
-          <Link
-            href="/foundation/donate"
-            className="inline-flex items-center gap-2 rounded-full bg-[#FFC107] px-5 py-2.5 text-xs font-bold text-[#1C2410] shadow-lg transition hover:bg-white"
-          >
-            Donate Now <Heart size={14} />
-          </Link>
-        </div>
-      </header>
-
       {/* Hero */}
       <section className="relative h-[92vh] min-h-[640px] w-full overflow-hidden">
         {slides.map((slide, i) => (
@@ -439,7 +413,7 @@ or buying one more schoolbook, not funding an abstract initiative.
                     whileHover={{ y: -4 }}
                   >
                     <Link
-                      href={`/foundation/causes/${cause.id}`}
+                      href={`/foundation/causes?category=${cause.id}`}
                       className="group flex h-full flex-col rounded-3xl border border-slate-200 bg-[#F8FAF0] p-6 transition hover:border-[#798321]/40 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-[#FFC107]/40"
                     >
                       <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#798321]/10 text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107]">
@@ -527,7 +501,7 @@ or buying one more schoolbook, not funding an abstract initiative.
           viewport={viewportOnce}
           transition={{ duration: 0.6 }}
           // CHANGED: Added `mx-auto max-w-fit pr-12` so the card shrink-wraps and stays perfectly centered!
-          className="relative mx-auto max-w-fit flex flex-col items-start justify-between gap-6 overflow-hidden rounded-3xl border border-[#798321]/20 bg-white p-8 shadow-sm sm:flex-row sm:items-center sm:p-10 sm:pr-12 dark:border-zinc-800 dark:bg-zinc-900"
+          className="relative mx-auto max-w-fit flex flex-col items-start justify-between gap-6 overflow-hidden rounded-3xl border border-[#798321]/20 bg-white p-6 sm:p-10 sm:pr-12 shadow-sm sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-900"
         >
           <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-[#798321]/5 blur-3xl dark:bg-[#FFC107]/5" />
           <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center">

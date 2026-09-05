@@ -10,10 +10,10 @@ export default function ProgramsFilterClient({ programs }: { programs: any[] }) 
   const filtered = selected === "All" ? programs : programs.filter(p => p.category === selected);
 
   return (
-    <section className="py-12 bg-white dark:bg-black transition-colors duration-500">
+    <section className="pt-6 pb-12 bg-white dark:bg-black transition-colors duration-500">
       <div className="mx-auto max-w-7xl px-4">
         {/* Filter UI - Compact */}
-        <div className="mb-10 flex flex-wrap justify-center gap-2">
+        <div className="mb-6 flex flex-wrap justify-center gap-2">
           {categories.map((cat) => (
             <button
               key={cat}

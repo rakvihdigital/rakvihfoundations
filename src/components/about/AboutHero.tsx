@@ -29,7 +29,7 @@ export default function AboutHero() {
             </div>
 
             {/* టెక్స్ట్ సైజ్ తగ్గించబడింది */}
-            <h1 className="mt-6 text-3xl font-black leading-tight text-[#0F172A] dark:text-white md:text-5xl">
+            <h1 className="mt-3 text-3xl font-black leading-tight text-[#0F172A] dark:text-white md:text-5xl">
               About <span className="text-[#798321]">RAKVIH </span>
               <span className="text-[#FFC107]">Foundation</span>
               <span className="mt-2 block text-lg font-medium text-gray-500 dark:text-gray-400 md:text-xl">
@@ -38,7 +38,7 @@ export default function AboutHero() {
             </h1>
 
             {/* టెక్స్ట్ సైజ్ తగ్గించబడింది */}
-            <p className="mt-6 max-w-lg text-base leading-7 text-gray-600 dark:text-gray-400">
+            <p className="mt-3 max-w-lg text-base leading-7 text-gray-600 dark:text-gray-400">
               Learn how RAKVIH Foundation bridges academics and industry with structured internships, live projects, expert mentorship and a 98% success rate.
             </p>
           </motion.div>

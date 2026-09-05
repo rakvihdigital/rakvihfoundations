@@ -31,7 +31,12 @@ import {
   uploadImageAction,
   getSystemConfig,
   saveSystemConfig,
+  addCategoryAddon,
+  deleteCategoryAddon,
+  addSubItemAddon,
+  deleteSubItemAddon,
   type SystemConfig,
+  type CategoryAddon,
 } from "./actions";
 
 const display = Fraunces({
@@ -46,11 +51,13 @@ interface SubCause {
   name: string;
   cost: number;
   image: string;
+  addons?: CategoryAddon[];
 }
 
 interface CauseCategory {
   id: string | number;
   name: string;
+  addons?: CategoryAddon[];
   cause_items?: SubCause[];
   subCauses?: SubCause[];
 }
@@ -84,11 +91,17 @@ export default function AdminCausesPage() {
   const [newExtraCost, setNewExtraCost] = useState("");
   const [savedSuccess, setSavedSuccess] = useState(false);
 
+  // Category Add-ons (Up to 20 items per category)
+  const [newAddonTitle, setNewAddonTitle] = useState("");
+  const [newAddonCost, setNewAddonCost] = useState("");
+
   // Edit Sub-Cause Modal States
   const [editingSub, setEditingSub] = useState<SubCause | null>(null);
   const [editName, setEditName] = useState("");
   const [editCost, setEditCost] = useState("");
   const [editImage, setEditImage] = useState("");
+  const [newSubAddonTitle, setNewSubAddonTitle] = useState("");
+  const [newSubAddonCost, setNewSubAddonCost] = useState("");
 
   // Edit Category Modal States
   const [editingCategory, setEditingCategory] = useState<CauseCategory | null>(null);
@@ -105,6 +118,7 @@ export default function AdminCausesPage() {
       const formatted: CauseCategory[] = (causesData || []).map((cat: any) => ({
         ...cat,
         name: cat.name || cat.title,
+        addons: cat.addons || [],
         subCauses: cat.cause_items || [],
       }));
 
@@ -327,6 +341,8 @@ export default function AdminCausesPage() {
     setEditName(sub.name);
     setEditCost(String(sub.cost));
     setEditImage(sub.image);
+    setNewSubAddonTitle("");
+    setNewSubAddonCost("");
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -344,6 +360,91 @@ export default function AdminCausesPage() {
         setEditingSub(null);
       } catch (err: any) {
         alert("Failed to update sub-item: " + err.message);
+      }
+    });
+  };
+
+  const handleAddSubAddonSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSub || !newSubAddonTitle.trim() || !activeCategoryId) return;
+
+    const currentCount = editingSub.addons?.length || 0;
+    if (currentCount >= 20) {
+      alert("Maximum limit of 20 add-ons for this sub-item reached.");
+      return;
+    }
+
+    const title = newSubAddonTitle.trim();
+    const cost = Number(newSubAddonCost) || 0;
+    const subId = editingSub.id;
+    setNewSubAddonTitle("");
+    setNewSubAddonCost("");
+
+    startTransition(async () => {
+      try {
+        await addSubItemAddon(subId, activeCategoryId, title, cost);
+        const formatted = await fetchAndSyncData();
+        const activeCat = formatted.find((c) => String(c.id) === String(activeCategoryId));
+        const refreshedSub = activeCat?.subCauses?.find((s) => String(s.id) === String(subId));
+        if (refreshedSub) {
+          setEditingSub(refreshedSub);
+        }
+      } catch (err: any) {
+        alert("Failed to add add-on to sub-item: " + err.message);
+      }
+    });
+  };
+
+  const handleDeleteSubAddonSubmit = async (subId: string | number, addonId: string) => {
+    startTransition(async () => {
+      try {
+        await deleteSubItemAddon(subId, activeCategoryId, addonId);
+        const formatted = await fetchAndSyncData();
+        const activeCat = formatted.find((c) => String(c.id) === String(activeCategoryId));
+        const refreshedSub = activeCat?.subCauses?.find((s) => String(s.id) === String(subId));
+        if (refreshedSub && editingSub && String(editingSub.id) === String(subId)) {
+          setEditingSub(refreshedSub);
+        }
+      } catch (err: any) {
+        alert("Failed to delete add-on: " + err.message);
+      }
+    });
+  };
+
+  const handleAddCategoryAddonSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAddonTitle.trim() || !activeCategoryId) return;
+
+    const currentCount = activeCategoryData?.addons?.length || 0;
+    if (currentCount >= 20) {
+      alert("Maximum limit of 20 add-ons per category reached.");
+      return;
+    }
+
+    const title = newAddonTitle.trim();
+    const cost = Number(newAddonCost) || 0;
+    setNewAddonTitle("");
+    setNewAddonCost("");
+
+    startTransition(async () => {
+      try {
+        await addCategoryAddon(activeCategoryId, title, cost);
+        await fetchAndSyncData();
+      } catch (err: any) {
+        alert("Failed to add category add-on: " + err.message);
+      }
+    });
+  };
+
+  const handleDeleteCategoryAddonSubmit = async (addonId: string) => {
+    if (!confirm("Are you sure you want to delete this optional add-on?")) return;
+
+    startTransition(async () => {
+      try {
+        await deleteCategoryAddon(activeCategoryId, addonId);
+        await fetchAndSyncData();
+      } catch (err: any) {
+        alert("Failed to delete add-on: " + err.message);
       }
     });
   };
@@ -646,13 +747,13 @@ export default function AdminCausesPage() {
                         <motion.div
                           key={sub.id}
                           whileHover={{ y: -2 }}
-                          className="relative flex flex-col sm:flex-row items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-800/50 p-4"
+                          className="relative flex flex-col gap-3 rounded-2xl border border-zinc-800 bg-zinc-800/50 p-4"
                         >
-                          <div className="absolute top-2 right-2 flex items-center gap-1">
+                          <div className="absolute top-2 right-2 flex items-center gap-1 z-10">
                             <button
                               onClick={() => openEditModal(sub)}
                               className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:text-[#FFC107] hover:bg-[#FFC107]/10 transition"
-                              title="Edit Sub-Item"
+                              title="Edit Sub-Item & Add-ons"
                             >
                               <Edit3 size={13} />
                             </button>
@@ -666,34 +767,83 @@ export default function AdminCausesPage() {
                             </button>
                           </div>
 
-                          <div className="relative group h-24 w-24 shrink-0 rounded-xl overflow-hidden border border-zinc-700 bg-zinc-800">
-                            <img src={sub.image || "/banner1.png"} alt={sub.name} className="h-full w-full object-cover" />
-                            <label className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                              <ImageIcon size={18} className="mb-1" />
-                              <span className="text-[10px] font-bold">Change</span>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => handleImageUpload(sub.id, e)}
-                                className="hidden"
-                              />
-                            </label>
-                          </div>
-
-                          <div className="flex-1 w-full space-y-2 text-center sm:text-left pr-4">
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-white">{sub.name}</h3>
-                            <div className="flex items-center justify-center sm:justify-start gap-2">
-                              <span className="text-[11px] font-bold text-slate-400">Base Cost (₹):</span>
-                              <div className="relative w-32">
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-2.5 text-slate-400 text-xs">₹</span>
+                          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                            <div className="relative group h-20 w-20 shrink-0 rounded-xl overflow-hidden border border-zinc-700 bg-zinc-800">
+                              <img src={sub.image || "/banner1.png"} alt={sub.name} className="h-full w-full object-cover" />
+                              <label className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                <ImageIcon size={18} className="mb-1" />
+                                <span className="text-[10px] font-bold">Change</span>
                                 <input
-                                  type="number"
-                                  value={sub.cost}
-                                  onChange={(e) => handleCostChange(sub.id, Number(e.target.value))}
-                                  className="w-full rounded-xl border border-zinc-700 bg-zinc-900 py-1.5 pl-7 pr-3 text-xs font-bold text-white focus:border-[#FFC107] focus:outline-none"
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => handleImageUpload(sub.id, e)}
+                                  className="hidden"
                                 />
+                              </label>
+                            </div>
+
+                            <div className="flex-1 w-full space-y-1.5 text-center sm:text-left pr-12">
+                              <h3 className="text-xs font-bold uppercase tracking-wider text-white">{sub.name}</h3>
+                              <div className="flex items-center justify-center sm:justify-start gap-2">
+                                <span className="text-[11px] font-bold text-slate-400">Base Cost (₹):</span>
+                                <div className="relative w-32">
+                                  <span className="absolute inset-y-0 left-0 flex items-center pl-2.5 text-slate-400 text-xs">₹</span>
+                                  <input
+                                    type="number"
+                                    value={sub.cost}
+                                    onChange={(e) => handleCostChange(sub.id, Number(e.target.value))}
+                                    className="w-full rounded-xl border border-zinc-700 bg-zinc-900 py-1.5 pl-7 pr-3 text-xs font-bold text-white focus:border-[#FFC107] focus:outline-none"
+                                  />
+                                </div>
                               </div>
                             </div>
+                          </div>
+
+                          {/* Sub-item specific saved add-ons */}
+                          <div className="mt-1 pt-2.5 border-t border-zinc-700/60 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <Gift size={12} className="text-[#FFC107]" />
+                                Sub-Item Add-ons ({sub.addons?.length || 0}/20)
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => openEditModal(sub)}
+                                className="text-[11px] font-bold text-[#FFC107] hover:underline flex items-center gap-1"
+                              >
+                                <Plus size={11} /> Manage Add-ons
+                              </button>
+                            </div>
+
+                            {(!sub.addons || sub.addons.length === 0) ? (
+                              <p className="text-[11px] text-zinc-500 italic">No add-ons saved for this sub-item yet.</p>
+                            ) : (
+                              <div className="flex flex-wrap gap-1.5">
+                                {sub.addons.map((addon) => (
+                                  <span
+                                    key={addon.id}
+                                    className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 border border-zinc-700 px-2 py-1 text-[11px] font-medium text-white shadow-sm"
+                                  >
+                                    <span>{addon.title}</span>
+                                    <span className="font-bold text-[#FFC107]">₹{addon.cost}</span>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (confirm(`Remove "${addon.title}" from this sub-item?`)) {
+                                          handleDeleteSubAddonSubmit(sub.id, addon.id);
+                                        }
+                                      }}
+                                      disabled={isPending}
+                                      className="text-slate-400 hover:text-red-400 transition ml-0.5"
+                                      title="Remove"
+                                    >
+                                      <X size={11} />
+                                    </button>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </motion.div>
                       ))}
@@ -763,6 +913,105 @@ export default function AdminCausesPage() {
                       </button>
                     </div>
                   </form>
+                </div>
+
+                {/* ── Sub-Category Optional Add-ons (Up to 20 items per category) ── */}
+                <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-4 sm:p-6 shadow-sm space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-800 pb-3 gap-2">
+                    <div>
+                      <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                        <Gift size={16} className="text-[#FFC107]" />
+                        Optional Add-ons for {activeCategoryData.name}
+                      </h3>
+                      <p className="text-xs text-slate-400">
+                        Admin can design up to 20 optional sub-category add-ons for {activeCategoryData.name}. These will appear under the card on the front-end for donors as optional choices.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`rounded-xl px-3 py-1 text-xs font-bold ${
+                        (activeCategoryData.addons?.length || 0) >= 20
+                          ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                          : "bg-zinc-800 text-[#FFC107] border border-zinc-700"
+                      }`}>
+                        {activeCategoryData.addons?.length || 0} / 20 items
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* List of current add-ons */}
+                  {(!activeCategoryData.addons || activeCategoryData.addons.length === 0) ? (
+                    <div className="py-8 text-center rounded-2xl border border-dashed border-zinc-800 bg-zinc-950/40">
+                      <p className="text-xs text-zinc-400">No optional add-ons configured for {activeCategoryData.name} yet.</p>
+                      <p className="text-[11px] text-zinc-600 mt-0.5">Use the form below to add up to 20 items.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {activeCategoryData.addons.map((addon) => (
+                        <div
+                          key={addon.id}
+                          className="flex items-center justify-between rounded-2xl border border-zinc-800 bg-zinc-800/60 p-3 shadow-sm hover:border-zinc-700 transition"
+                        >
+                          <div className="min-w-0 pr-2">
+                            <span className="block text-xs font-bold text-white truncate">{addon.title}</span>
+                            <span className="text-xs font-semibold text-[#FFC107]">₹{addon.cost}/person</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCategoryAddonSubmit(addon.id)}
+                            disabled={isPending}
+                            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition disabled:opacity-50"
+                            title="Delete Add-on"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Form to add add-on (disabled if count >= 20) */}
+                  {(activeCategoryData.addons?.length || 0) < 20 ? (
+                    <form onSubmit={handleAddCategoryAddonSubmit} className="pt-2 flex flex-col sm:flex-row gap-3 items-end">
+                      <div className="flex-1">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                          Add-on Title *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. Extra Rice Bowl, Sweet Box, Fruit Basket"
+                          value={newAddonTitle}
+                          onChange={(e) => setNewAddonTitle(e.target.value)}
+                          className="w-full rounded-xl border border-zinc-800 bg-zinc-800 py-2 px-3 text-xs text-white focus:border-[#FFC107] focus:outline-none"
+                        />
+                      </div>
+                      <div className="w-full sm:w-36">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                          Price in ₹ *
+                        </label>
+                        <input
+                          type="number"
+                          required
+                          min="0"
+                          placeholder="Cost (₹)"
+                          value={newAddonCost}
+                          onChange={(e) => setNewAddonCost(e.target.value)}
+                          className="w-full rounded-xl border border-zinc-800 bg-zinc-800 py-2 px-3 text-xs text-white focus:border-[#FFC107] focus:outline-none"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={isPending}
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#798321] to-[#FFC107] px-5 py-2 text-xs font-bold text-black shadow-md hover:opacity-90 active:scale-95 transition disabled:opacity-50"
+                      >
+                        <Plus size={14} /> Add Add-on
+                      </button>
+                    </form>
+                  ) : (
+                    <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-3 text-xs text-amber-300">
+                      You have reached the maximum limit of 20 add-ons for {activeCategoryData.name}. Delete an existing add-on to add a new one.
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -836,11 +1085,11 @@ export default function AdminCausesPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md rounded-3xl bg-zinc-900 p-6 shadow-2xl border border-zinc-800 space-y-6"
+              className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-zinc-900 p-6 shadow-2xl border border-zinc-800 space-y-6"
             >
               <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <Edit3 size={16} className="text-[#FFC107]" /> Edit Sub-Item
+                  <Edit3 size={16} className="text-[#FFC107]" /> Edit Sub-Item &amp; Add-ons
                 </h3>
                 <button
                   onClick={() => setEditingSub(null)}
@@ -905,7 +1154,99 @@ export default function AdminCausesPage() {
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-zinc-800 flex items-center justify-end gap-2">
+                {/* ── Sub-Item Specific Add-ons (Up to 20 for this sub-item) ── */}
+                <div className="pt-4 border-t border-zinc-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+                        <Gift size={14} className="text-[#FFC107]" />
+                        Sub-Item Add-ons for &quot;{editingSub.name}&quot;
+                      </h4>
+                      <p className="text-[10px] text-slate-400">
+                        Admin can add up to 20 optional add-ons specific to this sub-item. These appear under baseline cost on front-end.
+                      </p>
+                    </div>
+                    <span className="rounded-lg bg-zinc-800 px-2 py-0.5 text-[10px] font-bold text-[#FFC107] border border-zinc-700 shrink-0">
+                      {editingSub.addons?.length || 0}/20
+                    </span>
+                  </div>
+
+                  {/* List of current add-ons for this sub-item */}
+                  {(!editingSub.addons || editingSub.addons.length === 0) ? (
+                    <div className="rounded-xl border border-dashed border-zinc-800 bg-zinc-950/40 p-3 text-center">
+                      <p className="text-[11px] text-zinc-500">No add-ons added to this sub-item yet.</p>
+                      <p className="text-[10px] text-zinc-600 mt-0.5">Use the inputs below to add items like Notebook, Bottle, etc.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
+                      {editingSub.addons.map((addon) => (
+                        <div
+                          key={addon.id}
+                          className="flex items-center justify-between rounded-xl bg-zinc-800/80 border border-zinc-700/60 px-3 py-2 text-xs"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-white">{addon.title}</span>
+                            <span className="font-bold text-[#FFC107] text-[11px]">₹{addon.cost}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteSubAddonSubmit(editingSub.id, addon.id)}
+                            disabled={isPending}
+                            className="text-slate-400 hover:text-red-400 p-1 transition"
+                            title="Delete this add-on"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add add-on inputs */}
+                  {(editingSub.addons?.length || 0) < 20 ? (
+                    <div className="pt-2 flex flex-col sm:flex-row gap-2 items-end">
+                      <div className="flex-1 w-full">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                          Add-on Title
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Notebook Set, Water Bottle"
+                          value={newSubAddonTitle}
+                          onChange={(e) => setNewSubAddonTitle(e.target.value)}
+                          className="w-full rounded-xl border border-zinc-800 bg-zinc-800 py-1.5 px-3 text-xs text-white focus:border-[#FFC107] focus:outline-none"
+                        />
+                      </div>
+                      <div className="w-full sm:w-28">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                          Cost (₹)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          placeholder="Cost (₹)"
+                          value={newSubAddonCost}
+                          onChange={(e) => setNewSubAddonCost(e.target.value)}
+                          className="w-full rounded-xl border border-zinc-800 bg-zinc-800 py-1.5 px-3 text-xs text-white focus:border-[#FFC107] focus:outline-none"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAddSubAddonSubmit}
+                        disabled={isPending || !newSubAddonTitle.trim()}
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-r from-[#798321] to-[#FFC107] px-4 py-2 text-xs font-bold text-black hover:opacity-90 disabled:opacity-40 transition"
+                      >
+                        <Plus size={13} /> Add
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-2 text-xs text-amber-300">
+                      Reached limit of 20 add-ons for this sub-item.
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-3 border-t border-zinc-800 flex items-center justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => setEditingSub(null)}

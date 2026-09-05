@@ -36,7 +36,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       {/* Added suppressHydrationWarning here */}
-      <body className="min-h-screen" suppressHydrationWarning>
+      <body className="min-h-screen overflow-x-clip max-w-[100vw]" suppressHydrationWarning>
         <ThemeProvider>
           {children}
           <Toaster position="top-right" />

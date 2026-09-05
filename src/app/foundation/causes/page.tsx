@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { Fraunces } from "next/font/google";
 import { Heart, ArrowRight, Layers, Sparkles, Filter, Search, Users } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -110,15 +111,19 @@ const fallbackCauses = [
   },
 ];
 
-export default function CausesPage() {
-  const [categories, setCategories] = useState(fallbackCategories);
-  const [causes, setCauses] = useState(fallbackCauses);
+function CausesPageContent() {
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get("category");
+
+  const [categories, setCategories] = useState<any[]>(fallbackCategories);
+  const [causes, setCauses] = useState<any[]>(fallbackCauses);
   const [selectedCategory, setSelectedCategory] = useState<number | "all">("all");
+  const [categoryAddonsMap, setCategoryAddonsMap] = useState<Record<string | number, any[]>>({});
+  const [subItemAddonsMap, setSubItemAddonsMap] = useState<Record<string, any[]>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
   // Set document title + meta description since this is a client component
-  // and can't use Next.js's `metadata` export directly.
   useEffect(() => {
     document.title = SEO_TITLE;
 
@@ -139,17 +144,71 @@ export default function CausesPage() {
     canonical.setAttribute("href", CANONICAL_URL);
   }, []);
 
+  // Sync category from URL parameter (?category=...)
+  useEffect(() => {
+    if (!categoryParam) return;
+    const parsedId = parseInt(categoryParam, 10);
+    if (!isNaN(parsedId)) {
+      setSelectedCategory(parsedId);
+    } else {
+      const match = categories.find(
+        (c) =>
+          c.title?.toLowerCase() === categoryParam.toLowerCase() ||
+          c.name?.toLowerCase() === categoryParam.toLowerCase()
+      );
+      if (match) setSelectedCategory(match.id);
+    }
+  }, [categoryParam, categories]);
+
   useEffect(() => {
     async function fetchCausesData() {
       try {
         setLoading(true);
-        const [categoriesRes, itemsRes] = await Promise.all([
-          supabase.from("cause_categories").select("id, title, created_at").order("created_at", { ascending: true }),
-          supabase.from("cause_items").select("*").eq("is_active", true)
+        const [categoriesRes, itemsRes, addonsRes] = await Promise.all([
+          supabase.from("cause_categories").select("id, title, description, created_at").order("created_at", { ascending: true }),
+          supabase.from("cause_items").select("*").eq("is_active", true),
+          supabase.from("cause_item_addons").select("id, cause_id, title, cost, is_active").eq("is_active", true).order("created_at", { ascending: true })
         ]);
 
         if (!categoriesRes.error && categoriesRes.data && categoriesRes.data.length > 0) {
           setCategories(categoriesRes.data);
+
+          // Extract category and sub-item specific add-ons mapping
+          const catMap: Record<string | number, any[]> = {};
+          const subMap: Record<string, any[]> = {};
+
+          if (!addonsRes.error && addonsRes.data) {
+            addonsRes.data.forEach((addon: any) => {
+              const key = String(addon.cause_id);
+              if (!subMap[key]) subMap[key] = [];
+              subMap[key].push({
+                id: String(addon.id),
+                title: addon.title,
+                cost: Number(addon.cost) || 0,
+                is_active: addon.is_active,
+              });
+            });
+          }
+
+          categoriesRes.data.forEach((cat: any) => {
+            try {
+              const parsed = JSON.parse(cat.description || "{}");
+              if (Array.isArray(parsed.addOns) && parsed.addOns.length > 0) {
+                catMap[cat.id] = parsed.addOns;
+              }
+              if (parsed.subItemAddons && typeof parsed.subItemAddons === "object") {
+                Object.entries(parsed.subItemAddons).forEach(([subId, addons]) => {
+                  if (!subMap[subId] && Array.isArray(addons) && addons.length > 0) {
+                    subMap[subId] = addons;
+                  }
+                });
+              }
+            } catch {
+              // ignore plain descriptions
+            }
+          });
+          setCategoryAddonsMap(catMap);
+          setSubItemAddonsMap(subMap);
         }
 
         if (!itemsRes.error && itemsRes.data && itemsRes.data.length > 0) {
@@ -173,9 +232,9 @@ export default function CausesPage() {
   });
 
   return (
-    <div className={`min-h-screen bg-slate-50 dark:bg-black transition-colors duration-500 ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
+    <div className={`min-h-screen overflow-x-clip bg-slate-50 dark:bg-black transition-colors duration-500 ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
 
-      <section className="relative overflow-hidden pt-24 pb-16 sm:pt-32 sm:pb-20 bg-gradient-to-b from-[#24310F] via-[#2F3E14] to-[#F8FAF0] text-white dark:from-black dark:via-black dark:to-black">
+      <section className="relative overflow-hidden pt-10 pb-6 sm:pt-14 sm:pb-8 bg-gradient-to-b from-[#24310F] via-[#2F3E14] to-[#F8FAF0] text-white dark:from-black dark:via-black dark:to-black">
         <motion.div
           aria-hidden="true"
           animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
@@ -203,7 +262,7 @@ export default function CausesPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="mt-4 text-3xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl"
+            className="mt-2.5 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl"
           >
             Ways to{" "}
             <span className="bg-gradient-to-r from-[#FFC107] via-amber-300 to-yellow-200 bg-clip-text text-transparent">
@@ -215,7 +274,7 @@ export default function CausesPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-200 sm:text-base dark:text-neutral-300"
+            className="mx-auto mt-2 max-w-2xl text-xs sm:text-sm leading-relaxed text-slate-200 sm:leading-relaxed dark:text-neutral-300"
           >
             No vague fund here — choose exactly what you're supporting across Food, Child
             Support, Education, and Special Events, see the exact cost, and get proof it
@@ -224,7 +283,7 @@ export default function CausesPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 pt-5 pb-12 sm:pt-7 sm:pb-16 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-wrap items-center gap-2">
             <button
@@ -335,6 +394,36 @@ export default function CausesPage() {
                             <span className="font-bold text-[#798321] dark:text-[#FFC107]">₹{Number(costPerPerson).toLocaleString()}</span>
                           </div>
                         </div>
+                        {/* Optional Add-ons available */}
+                        {(() => {
+                          const itemAddons =
+                            subItemAddonsMap[String(cause.id)] || categoryAddonsMap[cause.category_id];
+                          if (!itemAddons || itemAddons.length === 0) return null;
+                          return (
+                            <div className="mt-3 pt-2.5 border-t border-dashed border-slate-200 dark:border-neutral-800">
+                              <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400 mb-1.5">
+                                <Sparkles size={11} className="text-[#798321] dark:text-[#FFC107]" />
+                                <span>Optional Add-ons ({itemAddons.length})</span>
+                              </div>
+                              <div className="flex flex-wrap gap-1.5">
+                                {itemAddons.slice(0, 2).map((addon: any, idx: number) => (
+                                  <span
+                                    key={addon.id || idx}
+                                    className="inline-flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-neutral-800/80 px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-neutral-300"
+                                  >
+                                    <span>{addon.title}</span>
+                                    <span className="font-bold text-[#798321] dark:text-[#FFC107]">+₹{addon.cost}</span>
+                                  </span>
+                                ))}
+                                {itemAddons.length > 2 && (
+                                  <span className="inline-flex items-center rounded-lg bg-amber-50 dark:bg-[#1f1a08] px-2 py-0.5 text-[10px] font-bold text-[#798321] dark:text-[#FFC107]">
+                                    +{itemAddons.length - 2} more
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
 
                       <div className="mt-6 pt-4 border-t border-slate-100 dark:border-neutral-800">
@@ -357,5 +446,20 @@ export default function CausesPage() {
       </section>
 
     </div>
+  );
+}
+
+export default function CausesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-50 dark:bg-black py-28 flex flex-col justify-center items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#798321] border-t-transparent dark:border-[#FFC107]" />
+          <p className="text-xs font-semibold text-slate-400">Loading ways to give...</p>
+        </div>
+      }
+    >
+      <CausesPageContent />
+    </Suspense>
   );
 }

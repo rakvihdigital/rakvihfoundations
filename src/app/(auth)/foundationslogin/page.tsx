@@ -53,12 +53,12 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // 2. FALLBACK: Master Admin Hardcoded Backup
+      // 2. FALLBACK: Main Admin Hardcoded Backup
       // (Keeps you from getting locked out if the database is empty)
       if (email === "admin@rakvih.org" && password === "rakvih@2026") {
-        localStorage.setItem("rakvih_admin_name", "Master Admin");
+        localStorage.setItem("rakvih_admin_name", "Admin");
         localStorage.setItem("rakvih_admin_role", "admin");
-        localStorage.setItem("rakvih_admin_staff_id", "MASTER-ADMIN"); // Master Admin ID tag
+        localStorage.setItem("rakvih_admin_staff_id", "ADMIN"); // Admin ID tag
         localStorage.setItem("rakvih_admin_permissions", JSON.stringify(["all"])); // "all" grants master access
         
         router.push("/adminfoundations");
@@ -66,7 +66,7 @@ export default function AdminLoginPage() {
       }
 
       // 3. If neither matched, show error
-      setError("Invalid email or password. Please try again or contact Master Admin.");
+      setError("Invalid email or password. Please try again or contact the administrator.");
       
     } catch (err) {
       console.error("Login error:", err);

@@ -10,7 +10,7 @@ const supabaseAdmin = createClient(
 
 // ================= VOLUNTEERS =================
 export async function getVolunteers() {
-  const { data, error } = await supabaseAdmin
+  const { data: vols, error } = await supabaseAdmin
     .from("volunteers")
     .select("*")
     .order("created_at", { ascending: false });
@@ -19,7 +19,32 @@ export async function getVolunteers() {
     console.error("Error fetching volunteers:", error.message);
     return [];
   }
-  return data;
+
+  // Safely aggregate completed opportunities & hours from volunteer_logs
+  try {
+    const { data: logs } = await supabaseAdmin
+      .from("volunteer_logs")
+      .select("volunteer_id, hours");
+
+    if (logs) {
+      const logMap: Record<string, { count: number; hours: number }> = {};
+      logs.forEach((l) => {
+        if (!logMap[l.volunteer_id]) logMap[l.volunteer_id] = { count: 0, hours: 0 };
+        logMap[l.volunteer_id].count += 1;
+        logMap[l.volunteer_id].hours += Number(l.hours) || 0;
+      });
+
+      return (vols || []).map((v) => ({
+        ...v,
+        completed_opportunities: logMap[v.id]?.count || 0,
+        total_hours: logMap[v.id]?.hours || 0,
+      }));
+    }
+  } catch (logErr) {
+    console.warn("Could not aggregate logs for volunteers:", logErr);
+  }
+
+  return vols || [];
 }
 
 export async function deleteVolunteer(id: string) {
@@ -217,14 +242,14 @@ export async function deleteVolunteerLog(id: string) {
   revalidatePath("/adminfoundations/volunteers");
 }
 
-// ================= EVENT REGISTRATIONS =================
+// ================= EVENT REGISTRATIONS & SHIFT TIMER =================
 export async function getEventRegistrations() {
   const { data, error } = await supabaseAdmin
     .from("event_registrations")
     .select(`
       *,
       volunteers ( id, name, email, phone, display_id ),
-      volunteer_events ( title, event_date )
+      volunteer_events ( title, event_date, event_time, location )
     `)
     .order("created_at", { ascending: false });
 
@@ -232,18 +257,284 @@ export async function getEventRegistrations() {
     console.error("Error fetching event registrations:", error.message);
     throw new Error("Event Registrations DB Error: " + error.message); 
   }
-  return data;
+
+  // Fetch all volunteer_logs to pair with registrations
+  const { data: logs } = await supabaseAdmin
+    .from("volunteer_logs")
+    .select("*");
+
+  const enriched = (data || []).map((reg: any) => {
+    const matchingLog = (logs || []).find((l: any) =>
+      l.volunteer_id === reg.volunteer_id &&
+      reg.volunteer_events?.title &&
+      l.title?.toLowerCase().trim() === reg.volunteer_events.title.toLowerCase().trim()
+    );
+
+    let shiftInfo = {
+      state: "not_started" as "not_started" | "in_progress" | "ended" | "verified",
+      startTime: null as string | null,
+      endTime: null as string | null,
+      duration: null as string | null,
+      hours: 0,
+    };
+
+    if (matchingLog) {
+      const raw = matchingLog.status || "";
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed.type === "SHIFT_STARTED") {
+          shiftInfo.state = "in_progress";
+          shiftInfo.startTime = parsed.start;
+        } else if (parsed.type === "SHIFT_ENDED" || parsed.type === "VERIFIED_COMPLETED") {
+          shiftInfo.state = reg.status === "completed" ? "verified" : "ended";
+          shiftInfo.startTime = parsed.start;
+          shiftInfo.endTime = parsed.end;
+          shiftInfo.duration = parsed.duration;
+          shiftInfo.hours = parsed.hours || matchingLog.hours || 0;
+        }
+      } catch {
+        if (raw === "Verified" || reg.status === "completed") {
+          shiftInfo.state = "verified";
+          shiftInfo.hours = matchingLog.hours || 0;
+        }
+      }
+    }
+
+    return {
+      ...reg,
+      shift: shiftInfo,
+    };
+  });
+
+  return enriched;
 }
 
-export async function updateRegistrationStatus(id: string, status: "approved" | "rejected") {
-  const { error } = await supabaseAdmin
+export async function startVolunteerShift({
+  volunteerId,
+  eventTitle,
+  eventDate,
+}: {
+  volunteerId: string;
+  eventTitle: string;
+  eventDate: string;
+}) {
+  const startTimeISO = new Date().toISOString();
+  const statusStr = JSON.stringify({
+    type: "SHIFT_STARTED",
+    start: startTimeISO,
+  });
+
+  // Check if log already exists
+  const { data: existingLog } = await supabaseAdmin
+    .from("volunteer_logs")
+    .select("id")
+    .eq("volunteer_id", volunteerId)
+    .eq("title", eventTitle)
+    .maybeSingle();
+
+  if (existingLog) {
+    await supabaseAdmin
+      .from("volunteer_logs")
+      .update({
+        date: eventDate,
+        status: statusStr,
+      })
+      .eq("id", existingLog.id);
+  } else {
+    await supabaseAdmin.from("volunteer_logs").insert([{
+      volunteer_id: volunteerId,
+      title: eventTitle,
+      date: eventDate,
+      hours: 0,
+      status: statusStr,
+    }]);
+  }
+
+  revalidatePath("/adminfoundations/volunteers/approvals");
+  return { success: true, startTime: startTimeISO };
+}
+
+export async function endVolunteerShift({
+  volunteerId,
+  eventTitle,
+  eventDate,
+}: {
+  volunteerId: string;
+  eventTitle: string;
+  eventDate: string;
+}) {
+  const endTime = new Date();
+  const endTimeISO = endTime.toISOString();
+
+  // Find the existing log with start time
+  const { data: existingLog } = await supabaseAdmin
+    .from("volunteer_logs")
+    .select("*")
+    .eq("volunteer_id", volunteerId)
+    .eq("title", eventTitle)
+    .maybeSingle();
+
+  let startTimeISO = new Date(Date.now() - 3600000).toISOString();
+  if (existingLog?.status) {
+    try {
+      const parsed = JSON.parse(existingLog.status);
+      if (parsed.start) startTimeISO = parsed.start;
+    } catch {}
+  }
+
+  const startMs = new Date(startTimeISO).getTime();
+  const endMs = endTime.getTime();
+  const diffMs = Math.max(0, endMs - startMs);
+
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  const formattedDuration = diffHours > 0 
+    ? `${diffHours}h ${diffMinutes}m` 
+    : `${Math.max(1, diffMinutes)}m`;
+
+  const calculatedHours = Math.max(1, Math.round((diffMs / (1000 * 60 * 60)) * 10) / 10);
+  const statusStr = JSON.stringify({
+    type: "SHIFT_ENDED",
+    start: startTimeISO,
+    end: endTimeISO,
+    duration: formattedDuration,
+    hours: calculatedHours,
+  });
+
+  if (existingLog) {
+    await supabaseAdmin
+      .from("volunteer_logs")
+      .update({
+        hours: calculatedHours,
+        status: statusStr,
+      })
+      .eq("id", existingLog.id);
+  } else {
+    await supabaseAdmin.from("volunteer_logs").insert([{
+      volunteer_id: volunteerId,
+      title: eventTitle,
+      date: eventDate,
+      hours: calculatedHours,
+      status: statusStr,
+    }]);
+  }
+
+  revalidatePath("/adminfoundations/volunteers/approvals");
+  return { 
+    success: true, 
+    startTime: startTimeISO, 
+    endTime: endTimeISO, 
+    duration: formattedDuration, 
+    hours: calculatedHours 
+  };
+}
+
+export async function getVolunteerShiftStatus(volunteerId: string, eventTitle: string) {
+  const { data: log } = await supabaseAdmin
+    .from("volunteer_logs")
+    .select("*")
+    .eq("volunteer_id", volunteerId)
+    .eq("title", eventTitle)
+    .maybeSingle();
+
+  if (!log) return { state: "not_started", startTime: null, endTime: null, duration: null, hours: 0 };
+
+  try {
+    const parsed = JSON.parse(log.status || "");
+    return {
+      state: parsed.type === "SHIFT_STARTED" ? "in_progress" : parsed.type === "SHIFT_ENDED" || parsed.type === "VERIFIED_COMPLETED" ? "ended" : "not_started",
+      startTime: parsed.start || null,
+      endTime: parsed.end || null,
+      duration: parsed.duration || null,
+      hours: parsed.hours || log.hours || 0,
+    };
+  } catch {
+    return { state: "not_started", startTime: null, endTime: null, duration: null, hours: 0 };
+  }
+}
+
+export async function updateRegistrationStatus(id: string, status: "approved" | "rejected" | "completed" | "pending") {
+  // 1. Update status and fetch registration details
+  const { data: updatedReg, error } = await supabaseAdmin
     .from("event_registrations")
     .update({ status })
-    .eq("id", id);
+    .eq("id", id)
+    .select(`
+      *,
+      volunteers ( id, name ),
+      volunteer_events ( title, event_date )
+    `)
+    .single();
 
   if (error) {
     console.error("Error updating registration status:", error.message);
     throw new Error(error.message);
   }
+
+  // 2. If marked as "completed", automatically verify log entry into volunteer_logs
+  if (status === "completed" && updatedReg?.volunteer_id) {
+    try {
+      const eventTitle = updatedReg.volunteer_events?.title || "Community Drive";
+      const eventDate = updatedReg.volunteer_events?.event_date || new Date().toISOString().split("T")[0];
+
+      // Check if log already exists
+      const { data: existingLog } = await supabaseAdmin
+        .from("volunteer_logs")
+        .select("*")
+        .eq("volunteer_id", updatedReg.volunteer_id)
+        .eq("title", eventTitle)
+        .maybeSingle();
+
+      let shiftMeta = {
+        type: "VERIFIED_COMPLETED",
+        start: null as string | null,
+        end: null as string | null,
+        duration: null as string | null,
+        hours: 2
+      };
+
+      if (existingLog?.status) {
+        try {
+          const parsed = JSON.parse(existingLog.status);
+          shiftMeta = { ...shiftMeta, ...parsed, type: "VERIFIED_COMPLETED" };
+        } catch {}
+      }
+
+      if (existingLog) {
+        await supabaseAdmin
+          .from("volunteer_logs")
+          .update({
+            status: JSON.stringify(shiftMeta),
+          })
+          .eq("id", existingLog.id);
+      } else {
+        await supabaseAdmin.from("volunteer_logs").insert([{
+          volunteer_id: updatedReg.volunteer_id,
+          title: eventTitle,
+          date: eventDate,
+          hours: 2,
+          status: JSON.stringify(shiftMeta),
+        }]);
+      }
+    } catch (logErr) {
+      console.warn("Could not auto-insert volunteer log for completed event:", logErr);
+    }
+  } else if (status !== "completed" && updatedReg?.volunteer_id) {
+    // If reverted back to approved or rejected, remove the completed log
+    try {
+      const eventTitle = updatedReg.volunteer_events?.title;
+      if (eventTitle) {
+        await supabaseAdmin
+          .from("volunteer_logs")
+          .delete()
+          .eq("volunteer_id", updatedReg.volunteer_id)
+          .eq("title", eventTitle);
+      }
+    } catch (revertErr) {
+      console.warn("Could not remove log on status revert:", revertErr);
+    }
+  }
+
   revalidatePath("/adminfoundations/volunteers");
+  revalidatePath("/adminfoundations/volunteers/approvals");
 }

@@ -9,6 +9,13 @@ export type ExtraItem = {
   cost: number;
 };
 
+export type CategoryAddon = {
+  id: string;
+  title: string;
+  cost: number;
+  is_active?: boolean;
+};
+
 export type SystemConfig = {
   minPersons: number;
   maxPersons: number;
@@ -124,26 +131,66 @@ export async function getCausesData() {
 
   if (!categories || categories.length === 0) return [];
 
-  const { data: items, error: itemError } = await supabaseAdmin
-    .from("cause_items")
-    .select("id, category_id, title, cost, image, is_active");
+  const [itemsRes, addonsRes] = await Promise.all([
+    supabaseAdmin
+      .from("cause_items")
+      .select("id, category_id, title, cost, image, is_active"),
+    supabaseAdmin
+      .from("cause_item_addons")
+      .select("id, cause_id, title, cost, is_active")
+      .order("created_at", { ascending: true }),
+  ]);
 
-  if (itemError) {
-    console.warn("Warning fetching cause items:", itemError.message);
+  if (itemsRes.error) {
+    console.warn("Warning fetching cause items:", itemsRes.error.message);
   }
 
-  const combined = categories.map((cat) => ({
-    id: cat.id,
-    name: cat.title,
-    cause_items: (items || [])
-      .filter((item) => String(item.category_id) === String(cat.id))
-      .map((item) => ({
-        id: item.id,
-        name: item.title,
-        cost: Number(item.cost) || 0,
-        image: item.image,
-      })),
-  }));
+  // Build addons map by cause_id from cause_item_addons table
+  const dbAddonsMap: Record<string, CategoryAddon[]> = {};
+  (addonsRes.data || []).forEach((addon) => {
+    const key = String(addon.cause_id);
+    if (!dbAddonsMap[key]) dbAddonsMap[key] = [];
+    dbAddonsMap[key].push({
+      id: String(addon.id),
+      title: addon.title,
+      cost: Number(addon.cost) || 0,
+      is_active: addon.is_active,
+    });
+  });
+
+  const combined = categories.map((cat) => {
+    let parsed: any = {};
+    try {
+      parsed = JSON.parse(cat.description || "{}");
+    } catch {
+      parsed = {};
+    }
+
+    const addOns: CategoryAddon[] = Array.isArray(parsed.addOns) ? parsed.addOns : [];
+    const legacySubItemAddonsMap: Record<string, CategoryAddon[]> = parsed.subItemAddons || {};
+
+    return {
+      id: cat.id,
+      name: cat.title,
+      addons: addOns,
+      cause_items: (itemsRes.data || [])
+        .filter((item) => String(item.category_id) === String(cat.id))
+        .map((item) => {
+          const key = String(item.id);
+          const itemAddons =
+            dbAddonsMap[key] && dbAddonsMap[key].length > 0
+              ? dbAddonsMap[key]
+              : legacySubItemAddonsMap[key] || [];
+          return {
+            id: item.id,
+            name: item.title,
+            cost: Number(item.cost) || 0,
+            image: item.image,
+            addons: itemAddons,
+          };
+        }),
+    };
+  });
 
   return combined;
 }
@@ -280,4 +327,287 @@ export async function deleteSubCause(subId: string | number) {
     throw new Error(error.message);
   }
   revalidatePath("/adminfoundations/causes");
+}
+
+// ── Sub-Category Add-ons Actions (Up to 20 per Category) ──
+
+export async function getCategoryAddons(categoryId: string | number): Promise<CategoryAddon[]> {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("cause_categories")
+      .select("id, description")
+      .eq("id", categoryId)
+      .single();
+
+    if (error || !data) return [];
+    const parsed = JSON.parse(data.description || "{}");
+    return Array.isArray(parsed.addOns) ? parsed.addOns : [];
+  } catch (err) {
+    console.error("Error reading category add-ons:", err);
+    return [];
+  }
+}
+
+export async function addCategoryAddon(categoryId: string | number, title: string, cost: number) {
+  const { data, error } = await supabaseAdmin
+    .from("cause_categories")
+    .select("id, description")
+    .eq("id", categoryId)
+    .single();
+
+  if (error || !data) throw new Error("Category not found");
+
+  let parsed: any = {};
+  try {
+    parsed = JSON.parse(data.description || "{}");
+  } catch {
+    parsed = { originalText: data.description };
+  }
+
+  const currentAddons: CategoryAddon[] = Array.isArray(parsed.addOns) ? parsed.addOns : [];
+  if (currentAddons.length >= 20) {
+    throw new Error("Maximum limit of 20 add-ons per category reached.");
+  }
+
+  const newAddon: CategoryAddon = {
+    id: `addon_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+    title: title.trim(),
+    cost: Number(cost) || 0,
+    is_active: true,
+  };
+
+  const updatedAddons = [...currentAddons, newAddon];
+  parsed.addOns = updatedAddons;
+
+  const { error: updateErr } = await supabaseAdmin
+    .from("cause_categories")
+    .update({ description: JSON.stringify(parsed) })
+    .eq("id", categoryId);
+
+  if (updateErr) throw new Error(updateErr.message);
+
+  revalidatePath("/adminfoundations/causes");
+  revalidatePath("/foundation/causes");
+  revalidatePath("/foundation/donate");
+  return { success: true, addons: updatedAddons };
+}
+
+export async function deleteCategoryAddon(categoryId: string | number, addonId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("cause_categories")
+    .select("id, description")
+    .eq("id", categoryId)
+    .single();
+
+  if (error || !data) throw new Error("Category not found");
+
+  let parsed: any = {};
+  try {
+    parsed = JSON.parse(data.description || "{}");
+  } catch {
+    parsed = { originalText: data.description };
+  }
+
+  const currentAddons: CategoryAddon[] = Array.isArray(parsed.addOns) ? parsed.addOns : [];
+  const updatedAddons = currentAddons.filter((a) => a.id !== addonId);
+  parsed.addOns = updatedAddons;
+
+  const { error: updateErr } = await supabaseAdmin
+    .from("cause_categories")
+    .update({ description: JSON.stringify(parsed) })
+    .eq("id", categoryId);
+
+  if (updateErr) throw new Error(updateErr.message);
+
+  revalidatePath("/adminfoundations/causes");
+  revalidatePath("/foundation/causes");
+  revalidatePath("/foundation/donate");
+  return { success: true, addons: updatedAddons };
+}
+
+export async function updateCategoryAddons(categoryId: string | number, addons: CategoryAddon[]) {
+  if (addons.length > 20) {
+    throw new Error("Cannot exceed 20 add-ons per category.");
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("cause_categories")
+    .select("id, description")
+    .eq("id", categoryId)
+    .single();
+
+  if (error || !data) throw new Error("Category not found");
+
+  let parsed: any = {};
+  try {
+    parsed = JSON.parse(data.description || "{}");
+  } catch {
+    parsed = { originalText: data.description };
+  }
+
+  parsed.addOns = addons;
+
+  const { error: updateErr } = await supabaseAdmin
+    .from("cause_categories")
+    .update({ description: JSON.stringify(parsed) })
+    .eq("id", categoryId);
+
+  if (updateErr) throw new Error(updateErr.message);
+
+  revalidatePath("/adminfoundations/causes");
+  revalidatePath("/foundation/causes");
+  revalidatePath("/foundation/donate");
+  return { success: true, addons };
+}
+
+// ── Sub-Item Specific Add-ons Actions (Stored in dedicated 'cause_item_addons' table) ──
+
+export async function addSubItemAddon(
+  subId: string | number,
+  categoryId: string | number,
+  title: string,
+  cost: number
+) {
+  // Check maximum limit of 20 add-ons for this sub-item
+  const { count } = await supabaseAdmin
+    .from("cause_item_addons")
+    .select("id", { count: "exact", head: true })
+    .eq("cause_id", subId);
+
+  if (count && count >= 20) {
+    throw new Error("Maximum limit of 20 add-ons for this sub-item reached.");
+  }
+
+  const { data: inserted, error: insertErr } = await supabaseAdmin
+    .from("cause_item_addons")
+    .insert([
+      {
+        cause_id: subId,
+        title: title.trim(),
+        cost: Number(cost) || 0,
+        is_active: true,
+      },
+    ])
+    .select()
+    .single();
+
+  if (insertErr) {
+    console.error("Error inserting into cause_item_addons:", insertErr.message);
+    throw new Error(insertErr.message);
+  }
+
+  // Also sync to legacy JSON if category exists (for dual safety)
+  if (categoryId) {
+    try {
+      const { data: catData } = await supabaseAdmin
+        .from("cause_categories")
+        .select("id, description")
+        .eq("id", categoryId)
+        .single();
+      if (catData?.description) {
+        const parsed = JSON.parse(catData.description || "{}");
+        if (!parsed.subItemAddons) parsed.subItemAddons = {};
+        const key = String(subId);
+        const current = Array.isArray(parsed.subItemAddons[key]) ? parsed.subItemAddons[key] : [];
+        parsed.subItemAddons[key] = [
+          ...current,
+          { id: String(inserted.id), title: title.trim(), cost: Number(cost) || 0, is_active: true },
+        ];
+        await supabaseAdmin
+          .from("cause_categories")
+          .update({ description: JSON.stringify(parsed) })
+          .eq("id", categoryId);
+      }
+    } catch {}
+  }
+
+  revalidatePath("/adminfoundations/causes");
+  revalidatePath("/foundation/causes");
+  revalidatePath("/foundation/donate");
+  return { success: true, addon: inserted };
+}
+
+export async function deleteSubItemAddon(
+  subId: string | number,
+  categoryId: string | number,
+  addonId: string
+) {
+  // Delete from cause_item_addons table
+  const { error: delErr } = await supabaseAdmin
+    .from("cause_item_addons")
+    .delete()
+    .eq("id", addonId);
+
+  if (delErr) {
+    console.error("Error deleting from cause_item_addons:", delErr.message);
+  }
+
+  // Also clean up any legacy JSON reference if exists
+  if (categoryId) {
+    try {
+      const { data: catData } = await supabaseAdmin
+        .from("cause_categories")
+        .select("id, description")
+        .eq("id", categoryId)
+        .single();
+      if (catData?.description) {
+        const parsed = JSON.parse(catData.description || "{}");
+        const key = String(subId);
+        if (parsed.subItemAddons && Array.isArray(parsed.subItemAddons[key])) {
+          parsed.subItemAddons[key] = parsed.subItemAddons[key].filter(
+            (a: any) => String(a.id) !== String(addonId)
+          );
+          await supabaseAdmin
+            .from("cause_categories")
+            .update({ description: JSON.stringify(parsed) })
+            .eq("id", categoryId);
+        }
+      }
+    } catch {}
+  }
+
+  revalidatePath("/adminfoundations/causes");
+  revalidatePath("/foundation/causes");
+  revalidatePath("/foundation/donate");
+  return { success: true };
+}
+
+export async function getSubItemAddons(
+  subId: string | number,
+  categoryId?: string | number
+): Promise<CategoryAddon[]> {
+  try {
+    const { data: dbAddons, error } = await supabaseAdmin
+      .from("cause_item_addons")
+      .select("id, title, cost, is_active")
+      .eq("cause_id", subId)
+      .order("created_at", { ascending: true });
+
+    if (!error && dbAddons && dbAddons.length > 0) {
+      return dbAddons.map((a) => ({
+        id: String(a.id),
+        title: a.title,
+        cost: Number(a.cost) || 0,
+        is_active: a.is_active,
+      }));
+    }
+
+    // Fallback to legacy JSON if table is empty
+    if (categoryId) {
+      const { data } = await supabaseAdmin
+        .from("cause_categories")
+        .select("id, description")
+        .eq("id", categoryId)
+        .single();
+      if (data?.description) {
+        const parsed = JSON.parse(data.description || "{}");
+        const key = String(subId);
+        return parsed.subItemAddons?.[key] || [];
+      }
+    }
+    return [];
+  } catch (err) {
+    console.error("Error fetching sub-item add-ons:", err);
+    return [];
+  }
 }

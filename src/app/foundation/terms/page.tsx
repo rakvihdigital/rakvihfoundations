@@ -67,29 +67,29 @@ const sections = [
 export default function TermsPage() {
   return (
     <div
-      className={`min-h-screen bg-[#F8FAF0] text-[#1C2410] dark:bg-black dark:text-slate-100 transition-colors duration-500 ${display.variable} ${body.variable}`}
+      className={`min-h-screen overflow-x-clip bg-[#F8FAF0] text-[#1C2410] dark:bg-black dark:text-slate-100 transition-colors duration-500 ${display.variable} ${body.variable}`}
       style={{ fontFamily: "var(--font-body)" }}
     >
       {/* Hero */}
-      <section className="px-4 pb-8 pt-14 sm:px-6 lg:px-8">
+      <section className="px-4 pb-4 pt-10 sm:px-6 sm:pb-6 sm:pt-14 lg:px-8">
         <div className="mx-auto max-w-3xl">
           <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#798321] dark:text-[#FFC107]">
             Legal
           </span>
           <h1
-            className="mt-3 text-3xl font-semibold text-[#1C2410] dark:text-white sm:text-4xl"
+            className="mt-2 text-3xl font-semibold text-[#1C2410] dark:text-white sm:text-4xl"
             style={{ fontFamily: "var(--font-display)" }}
           >
             Terms & Conditions
           </h1>
-          <p className="mt-3 text-sm text-slate-500 dark:text-neutral-400">
+          <p className="mt-1.5 text-xs sm:text-sm text-slate-500 dark:text-neutral-400">
             Last updated: August 2026
           </p>
         </div>
       </section>
 
       {/* Content */}
-      <section className="px-4 pb-24 sm:px-6 lg:px-8">
+      <section className="px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8">
         <div className="mx-auto max-w-3xl space-y-8 rounded-3xl border border-slate-200 bg-white p-6 dark:border-neutral-800 dark:bg-[#0a0a0a] sm:p-10 shadow-xl">
           {sections.map((s) => (
             <div key={s.title}>

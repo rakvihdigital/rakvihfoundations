@@ -63,7 +63,8 @@ export default function ContactForm() {
         bg-white
         dark:bg-black
 
-        py-16
+        py-10
+        sm:py-14
 
         transition-all
         duration-500
@@ -121,7 +122,7 @@ export default function ContactForm() {
 
           <form
             onSubmit={handleSubmit}
-            className="mt-8 space-y-5"
+            className="mt-5 space-y-5"
           >
 
             <div className="grid gap-5 md:grid-cols-2">

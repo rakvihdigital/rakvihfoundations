@@ -24,7 +24,7 @@ export default function GatewayPage() {
     <div className={`min-h-[100dvh] w-full overflow-y-auto overflow-x-hidden flex flex-col items-center justify-center bg-[#F8FAF0] text-slate-900 dark:bg-black dark:text-neutral-100 ${display.variable}`}>
 
       {/* HERO SECTION */}
-      <section className="relative shrink-0 py-4 sm:py-8">
+      <section className="relative shrink-0 py-4 sm:py-8 overflow-hidden">
         <div className="absolute top-[-10%] left-[-10%] h-[300px] w-[300px] sm:h-[500px] sm:w-[500px] rounded-full bg-[#798321]/10 blur-[100px]" />
         <div className="absolute top-[20%] right-[-10%] h-[200px] w-[200px] sm:h-[400px] sm:w-[400px] rounded-full bg-[#FFC107]/10 blur-[80px]" />
 

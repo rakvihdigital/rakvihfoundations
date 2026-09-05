@@ -72,36 +72,9 @@ const foundationPosts = [
 
 export default function FoundationBlogPage() {
   return (
-    <div className="min-h-screen bg-[#F8FAF0] text-[#1C2410] dark:bg-black dark:text-slate-100">
-      {/* ============ NAVIGATION ============ */}
-      <header className="fixed top-0 z-50 w-full bg-[#1C2410]/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <Link
-            href="/foundation"
-            className="text-lg font-bold tracking-tight text-white"
-          >
-            RAKVIH Foundation
-          </Link>
-
-          <nav className="hidden items-center gap-6 text-sm font-semibold text-white/90 md:flex">
-            <Link href="/foundation/causes" className="hover:text-[#FFC107] transition">Causes</Link>
-            <Link href="/foundation/gallery" className="hover:text-[#FFC107] transition">Gallery</Link>
-            <Link href="/foundation/blog" className="text-[#FFC107] transition">Impact Blog</Link>
-            <Link href="/csr" className="hover:text-[#FFC107] transition">Partner With Us</Link>
-            <Link href="/foundation/volunteer" className="hover:text-[#FFC107] transition">Volunteer</Link>
-          </nav>
-
-          <Link
-            href="/foundation/donate"
-            className="inline-flex items-center gap-2 rounded-full bg-[#FFC107] px-4 py-2 text-xs font-bold text-[#1C2410] shadow-md transition hover:bg-white"
-          >
-            Donate Now <Heart size={14} />
-          </Link>
-        </div>
-      </header>
-
+    <div className="min-h-screen overflow-x-clip bg-[#F8FAF0] text-[#1C2410] dark:bg-black dark:text-slate-100">
       {/* ============ HERO SECTION ============ */}
-      <section className="relative overflow-hidden pt-32 pb-16 bg-[#1C2410] text-white">
+      <section className="relative overflow-hidden pt-10 pb-6 sm:pt-14 sm:pb-8 bg-[#1C2410] text-white">
         <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-[#FFC107]/15 blur-3xl" />
         <div aria-hidden className="pointer-events-none absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-[#798321]/25 blur-3xl" />
 
@@ -110,18 +83,18 @@ export default function FoundationBlogPage() {
             Blogs 
           </span>
 
-          <h1 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-5xl">
+          <h1 className="mt-2.5 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
             Transparency & Impact Journal
           </h1>
 
-          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
+          <p className="mx-auto mt-2 max-w-2xl text-xs sm:text-sm leading-relaxed text-white/80 sm:leading-relaxed">
             Detailed reports, verifiable photo dispatches, and CSR case studies detailing how your contributions create lasting change across Bengaluru.
           </p>
         </div>
       </section>
 
       {/* ============ ARTICLES GRID ============ */}
-      <section className="mx-auto max-w-6xl px-6 py-16">
+      <section className="mx-auto max-w-6xl px-6 pt-6 pb-12 sm:pt-8 sm:pb-16">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           {foundationPosts.map((post) => {
             const Icon = post.tagIcon;

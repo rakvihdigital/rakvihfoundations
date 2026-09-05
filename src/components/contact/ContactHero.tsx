@@ -6,7 +6,7 @@ export default function ContactHero() {
   return (
     <section className="relative overflow-hidden">
       {/* Hero Background */}
-      <div className="relative flex min-h-[420px] items-center justify-center overflow-hidden bg-gradient-to-r from-[#798321] via-[#8A8F2A] to-[#FFC107]">
+      <div className="relative flex min-h-[340px] sm:min-h-[380px] items-center justify-center overflow-hidden bg-gradient-to-r from-[#798321] via-[#8A8F2A] to-[#FFC107]">
 
         {/* Decorative Glow */}
         <div aria-hidden="true" className="absolute -top-20 -left-20 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
@@ -33,7 +33,7 @@ export default function ContactHero() {
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
             transition={{ duration: 0.7, delay: 0.2 }}
-            className="mx-auto mt-4 h-1 w-20 rounded-full bg-white"
+            className="mx-auto mt-2.5 h-1 w-20 rounded-full bg-white"
           />
 
           {/* Description */}
@@ -41,7 +41,7 @@ export default function ContactHero() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="mx-auto mt-6 max-w-2xl text-sm leading-7 text-white/90 md:text-base"
+            className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-white/90 md:text-base"
           >
             Whether you have questions about internships, placement
             assistance, certifications, or career opportunities, our

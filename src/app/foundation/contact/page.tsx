@@ -123,10 +123,10 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full bg-[#F8FAF0] text-slate-900 dark:bg-black dark:text-slate-100">
+    <div className="min-h-[100dvh] w-full overflow-x-clip bg-[#F8FAF0] text-slate-900 dark:bg-black dark:text-slate-100">
       
       {/* ============ HIGHLY ANIMATED INTERACTIVE BANNER ============ */}
-      <section className="relative overflow-hidden pt-24 pb-12 sm:pt-32 sm:pb-16 bg-gradient-to-b from-[#24310F] via-[#2F3E14] to-[#F8FAF0] text-white dark:from-black dark:via-zinc-950 dark:to-black">
+      <section className="relative overflow-hidden pt-10 pb-6 sm:pt-14 sm:pb-8 bg-gradient-to-b from-[#24310F] via-[#2F3E14] to-[#F8FAF0] text-white dark:from-black dark:via-zinc-950 dark:to-black">
         {/* Animated Background Orbs */}
         <motion.div
           animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
@@ -153,7 +153,7 @@ export default function ContactPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="mt-4 text-3xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl"
+            className="mt-2.5 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl"
           >
             Let's Build Hope Together,{" "}
             <span className="bg-gradient-to-r from-[#FFC107] via-amber-300 to-yellow-200 bg-clip-text text-transparent">
@@ -165,7 +165,7 @@ export default function ContactPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-200 sm:text-base"
+            className="mx-auto mt-2 max-w-2xl text-xs sm:text-sm leading-relaxed text-slate-200 sm:leading-relaxed"
           >
             Have a question about volunteering, corporate partnerships, or making a donation? Connect directly with our core team—no bots, just real humans ready to help.
           </motion.p>
@@ -307,7 +307,7 @@ export default function ContactPage() {
                 )}
 
                 <div>
-                  <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300">
                     What's this inquiry regarding?
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -330,7 +330,7 @@ export default function ContactPage() {
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300">
                       Full Name
                     </label>
                     <input
@@ -339,11 +339,11 @@ export default function ContactPage() {
                       value={formData.full_name}
                       onChange={handleChange}
                       placeholder="Enter your name"
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs outline-none ring-[#798321]/30 transition focus:ring-2 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-900 outline-none ring-[#798321]/30 transition focus:bg-white focus:ring-2 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white dark:focus:bg-zinc-950"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300">
                       Phone Number
                     </label>
                     <input
@@ -352,13 +352,13 @@ export default function ContactPage() {
                       value={formData.phone}
                       onChange={handleChange}
                       placeholder="Enter phone number"
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs outline-none ring-[#798321]/30 transition focus:ring-2 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-900 outline-none ring-[#798321]/30 transition focus:bg-white focus:ring-2 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white dark:focus:bg-zinc-950"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300">
                     Email Address
                   </label>
                   <input
@@ -368,12 +368,12 @@ export default function ContactPage() {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="you@example.com"
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs outline-none ring-[#798321]/30 transition focus:ring-2 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-900 outline-none ring-[#798321]/30 transition focus:bg-white focus:ring-2 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white dark:focus:bg-zinc-950"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300">
                     Your Message
                   </label>
                   <textarea
@@ -383,7 +383,7 @@ export default function ContactPage() {
                     value={formData.message}
                     onChange={handleChange}
                     placeholder="Write details about your query..."
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs outline-none ring-[#798321]/30 transition focus:ring-2 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-900 outline-none ring-[#798321]/30 transition focus:bg-white focus:ring-2 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white dark:focus:bg-zinc-950"
                   />
                 </div>
 

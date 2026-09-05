@@ -31,7 +31,7 @@ export default function Hero() {
       <HeroBackground />
 
       {/* Top Badge */}
-      <div className="relative z-30 flex justify-center pt-24 sm:pt-20 lg:pt-28">
+      <div className="relative z-30 flex justify-center pt-20 sm:pt-16 lg:pt-20">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -46,7 +46,7 @@ export default function Hero() {
       </div>
 
       {/* Main Grid Container */}
-      <div className="relative z-20 w-full max-w-[1350px] mx-auto px-4 sm:px-6 grid lg:grid-cols-[1.1fr_1.2fr] gap-12 lg:gap-8 items-center py-10 lg:py-16">
+      <div className="relative z-20 w-full max-w-[1350px] mx-auto px-4 sm:px-6 grid lg:grid-cols-[1.1fr_1.2fr] gap-12 lg:gap-8 items-center py-8 lg:py-12">
         {/* Left Content */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
@@ -66,11 +66,11 @@ export default function Hero() {
             </span>
           </h1>
 
-          <p className="mt-6 text-[15px] sm:text-[16px] leading-relaxed max-w-[540px] text-gray-600 dark:text-neutral-300">
+          <p className="mt-4 text-[15px] sm:text-[16px] leading-relaxed max-w-[540px] text-gray-600 dark:text-neutral-300">
             RAKVIH is a career platform built for students who want more than a certificate—experience that employers actually recognise. Every RAKVIH internship pairs you with an industry mentor, puts you on a live project from week one, and ends with a verified certificate plus placement support.
           </p>
 
-          <div className="mt-8 w-full">
+          <div className="mt-6 w-full">
             <HeroFeatures />
           </div>
         </motion.div>

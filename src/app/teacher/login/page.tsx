@@ -85,7 +85,7 @@ export default function TeacherLoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 py-3.5 pr-4 pl-12 text-sm font-medium text-gray-900 outline-none transition-all focus:border-[#798321] focus:bg-white focus:ring-4 focus:ring-[#798321]/10 dark:border-neutral-800 dark:bg-[#171717] dark:text-white dark:focus:border-[#FFC107] dark:focus:ring-[#FFC107]/10"
+                className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 py-3.5 pr-4 pl-12 text-sm font-medium text-gray-900 outline-none transition-all focus:border-[#798321] focus:bg-white focus:ring-4 focus:ring-[#798321]/10 dark:border-neutral-800 dark:bg-[#171717] dark:text-white dark:focus:bg-[#171717] dark:focus:border-[#FFC107] dark:focus:ring-[#FFC107]/10"
                 placeholder="teacher@example.com"
               />
             </div>
@@ -103,7 +103,7 @@ export default function TeacherLoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 py-3.5 pr-4 pl-12 text-sm font-medium text-gray-900 outline-none transition-all focus:border-[#798321] focus:bg-white focus:ring-4 focus:ring-[#798321]/10 dark:border-neutral-800 dark:bg-[#171717] dark:text-white dark:focus:border-[#FFC107] dark:focus:ring-[#FFC107]/10"
+                className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 py-3.5 pr-4 pl-12 text-sm font-medium text-gray-900 outline-none transition-all focus:border-[#798321] focus:bg-white focus:ring-4 focus:ring-[#798321]/10 dark:border-neutral-800 dark:bg-[#171717] dark:text-white dark:focus:bg-[#171717] dark:focus:border-[#FFC107] dark:focus:ring-[#FFC107]/10"
                 placeholder="••••••••"
               />
             </div>

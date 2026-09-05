@@ -23,7 +23,14 @@ import {
   AlertCircle,
   MessageSquare,
   Sparkles,
-  Printer
+  Printer,
+  Mail,
+  Phone,
+  Receipt,
+  FileText,
+  Layers,
+  ShieldCheck,
+  Maximize2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminHeader from "@/components/foundation/adminheader";
@@ -45,6 +52,7 @@ export default function AdminDonationsPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedDonation, setSelectedDonation] = useState<any | null>(null);
+  const [previewingPhotoUrl, setPreviewingPhotoUrl] = useState<string | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [copiedLabel, setCopiedLabel] = useState(false);
@@ -100,7 +108,7 @@ export default function AdminDonationsPage() {
     });
   };
 
-  // Robust extraction of all packaging parameters
+  // Robust extraction of all packaging parameters and add-on prices
   const parsePackagingDetails = (messageStr: string = "", donorImage?: string) => {
     const parts = (messageStr || "").split(" | ").map((p) => p.trim());
     let generalMessage = "";
@@ -110,15 +118,17 @@ export default function AdminDonationsPage() {
         ? donorImage.trim() 
         : "";
     let isVideoRequested = false;
+    let videoCost = 22; // default flat video charge
     let labelName = "";
     let labelDesc = "";
     let extras: string[] = [];
+    let subItemAddons: { title: string; cost: number }[] = [];
 
     parts.forEach((part) => {
       const lower = part.toLowerCase();
 
       if (lower.startsWith("members:")) {
-        const num = parseInt(part.replace(/members:/i, "").trim());
+        const num = parseInt(part.replace(/members:/i, "").trim(), 10);
         if (!isNaN(num) && num > 0) members = num;
       } else if (lower.startsWith("photo on packing:") || lower.startsWith("photo:") || lower.startsWith("packing media:")) {
         const extracted = part.replace(/photo on packing:|photo:|packing media:/i, "").trim();
@@ -127,6 +137,19 @@ export default function AdminDonationsPage() {
         }
       } else if (lower.startsWith("celebration video requested:") || lower.includes("celebration video") || lower.includes("video:")) {
         isVideoRequested = true;
+        const match = part.match(/₹(\d+)/);
+        if (match) videoCost = parseInt(match[1], 10);
+      } else if (lower.startsWith("sub-item add-ons:") || lower.startsWith("sub-item addons:") || lower.startsWith("addons:")) {
+        const raw = part.replace(/sub-item add-ons:|sub-item addons:|addons:/i, "").trim();
+        const items = raw.split(",").map((s) => s.trim()).filter(Boolean);
+        items.forEach((it) => {
+          const costMatch = it.match(/(.*?)\s*\(\+?₹(\d+)\)/);
+          if (costMatch) {
+            subItemAddons.push({ title: costMatch[1].trim(), cost: parseInt(costMatch[2], 10) });
+          } else {
+            subItemAddons.push({ title: it, cost: 0 });
+          }
+        });
       } else if (lower.startsWith("label:")) {
         const rawLabel = part.replace(/label:/i, "").trim();
         const match = rawLabel.match(/\[(.*?)\](?:\s*-\s*(.*))?/);
@@ -151,6 +174,8 @@ export default function AdminDonationsPage() {
       members,
       photoUrl,
       isVideoRequested,
+      videoCost,
+      subItemAddons,
       labelName,
       labelDesc,
       extras,
@@ -189,6 +214,8 @@ export default function AdminDonationsPage() {
   const filteredDonations = donations.filter((d) => {
     const matchesSearch = 
       d.donor_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      d.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      d.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       d.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       d.cause_items?.title?.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -389,6 +416,22 @@ export default function AdminDonationsPage() {
                             )}
                             <div>
                               <div className="font-bold text-white">{donation.donor_name}</div>
+                              {(donation.email || donation.phone) && (
+                                <div className="text-slate-400 text-[10px] space-y-0.5 mt-0.5">
+                                  {donation.email && (
+                                    <div className="flex items-center gap-1 text-slate-300">
+                                      <Mail size={10} className="text-[#FFC107] shrink-0" />
+                                      <span className="truncate max-w-[150px]">{donation.email}</span>
+                                    </div>
+                                  )}
+                                  {donation.phone && (
+                                    <div className="flex items-center gap-1 text-slate-300">
+                                      <Phone size={10} className="text-[#FFC107] shrink-0" />
+                                      <span>{donation.phone}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                               <div className="text-slate-400 text-[10px] flex items-center gap-1 mt-0.5">
                                 <Users size={10} className="text-[#FFC107]" /> {parsed.members} Member(s)
                               </div>
@@ -493,212 +536,512 @@ export default function AdminDonationsPage() {
 
       </main>
 
-      {/* ── OPERATIONAL PACKAGING & FULFILLMENT MODAL (CRYSTAL CLEAR DETAILS) ── */}
+      {/* ── OPERATIONAL PACKAGING & FULFILLMENT MODAL (DETAILED & NEATLY ALIGNED) ── */}
       <AnimatePresence>
         {selectedDonation && (() => {
           const parsed = parsePackagingDetails(selectedDonation.message, selectedDonation.donor_image);
           const isDonated = selectedDonation.is_donated ?? true;
+          const totalPaid = Number(selectedDonation.amount) || 0;
+          const membersCount = Math.max(1, parsed.members);
+
+          // Pricing Breakdown Calculations
+          const subAddonsUnitSum = parsed.subItemAddons.reduce((sum, item) => sum + (item.cost || 0), 0);
+          const subAddonsTotal = subAddonsUnitSum * membersCount;
+
+          const photoUnitCost = parsed.photoUrl ? 10 : 0;
+          const photoTotalCost = photoUnitCost * membersCount;
+
+          const textUnitCost = parsed.labelName ? 5 : 0;
+          const textTotalCost = textUnitCost * membersCount;
+
+          const videoTotalCost = parsed.isVideoRequested ? parsed.videoCost : 0;
+
+          let baseUnitCost = selectedDonation.cause_items?.cost 
+            ? Number(selectedDonation.cause_items.cost) 
+            : 0;
+
+          if (!baseUnitCost || baseUnitCost <= 0) {
+            const remainingForBase = totalPaid - videoTotalCost - subAddonsTotal - photoTotalCost - textTotalCost;
+            baseUnitCost = Math.max(0, Math.round(remainingForBase / membersCount));
+          }
+
+          const baseSubtotal = baseUnitCost * membersCount;
+          const causeTitle = selectedDonation.cause_items?.title || selectedDonation.cause_items?.name || "General Foundation Sponsorship";
 
           return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 sm:p-6">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-6 overflow-y-auto">
               <motion.div
                 initial={{ scale: 0.95, opacity: 0, y: 15 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.95, opacity: 0, y: 15 }}
-                className="w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl bg-[#0f0f0f] border border-zinc-800 p-6 sm:p-7 shadow-2xl space-y-6"
+                className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-3xl bg-[#0d0d0d] border border-zinc-800 p-6 sm:p-8 shadow-2xl space-y-6 text-slate-200"
               >
-                {/* Modal Header */}
-                <div className="flex items-start justify-between border-b border-zinc-800 pb-4">
+                {/* ── 1. MODAL TOP HEADER ── */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-800 pb-5 gap-4">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#FFC107] bg-[#FFC107]/10 px-2.5 py-0.5 rounded-full">
-                        Fulfillment Sheet #{selectedDonation.id}
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#FFC107] bg-[#FFC107]/10 border border-[#FFC107]/20 px-3 py-1 rounded-full">
+                        Manifest ID #{String(selectedDonation.id).padStart(5, "0")}
                       </span>
-                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
-                        isDonated ? "bg-emerald-950 text-emerald-400 border border-emerald-800/60" : "bg-zinc-800 text-zinc-400"
+                      <span className={`text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 ${
+                        isDonated ? "bg-emerald-950 text-emerald-400 border border-emerald-800/60" : "bg-zinc-800 text-zinc-400 border border-zinc-700"
                       }`}>
-                        {isDonated ? "Completed & Delivered" : "Pending Execution"}
+                        <CheckCircle2 size={12} />
+                        {isDonated ? "Delivered & Fulfilled" : "Pending Execution"}
                       </span>
                     </div>
-                    <h3 className="text-xl font-extrabold text-white mt-1.5">{selectedDonation.donor_name}</h3>
-                    <p className="text-xs text-emerald-400 font-extrabold mt-0.5">
-                      Total Paid: ₹{Number(selectedDonation.amount).toLocaleString()} (Razorpay Verified)
+                    <h2 className="text-2xl font-extrabold text-white mt-2">
+                      Fulfillment &amp; Order Manifest
+                    </h2>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Received on {new Date(selectedDonation.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </p>
                   </div>
-                  <button
-                    onClick={() => setSelectedDonation(null)}
-                    className="rounded-full p-2 text-slate-400 hover:bg-zinc-800 transition"
-                  >
-                    <X size={18} />
-                  </button>
+
+                  <div className="flex items-center justify-between sm:justify-end gap-4">
+                    <div className="text-left sm:text-right">
+                      <span className="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">Total Collected</span>
+                      <span className="text-2xl font-black text-emerald-400 block">
+                        ₹{totalPaid.toLocaleString()}
+                      </span>
+                      <span className="text-[10px] font-bold text-emerald-400/90 flex items-center sm:justify-end gap-1">
+                        <ShieldCheck size={12} /> Razorpay Verified
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => setSelectedDonation(null)}
+                      className="rounded-xl p-2 text-slate-400 hover:text-white hover:bg-zinc-800 transition"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
                 </div>
 
-                {/* Quick Info Bar */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                  <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-3 space-y-1">
-                    <span className="text-[10px] font-bold uppercase text-slate-400 block">Sponsorship</span>
-                    <span className="font-bold text-white block truncate">{selectedDonation.cause_items?.title || "Initiative"}</span>
+                {/* ── 2. DONOR PROFILE & SPONSORSHIP METADATA (2 Clean Cards) ── */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  
+                  {/* Card A: Donor Profile */}
+                  <div className="rounded-2xl border border-zinc-800/90 bg-zinc-900/60 p-5 space-y-3">
+                    <div className="flex items-center gap-2 border-b border-zinc-800 pb-2.5">
+                      <Users size={16} className="text-[#FFC107]" />
+                      <h4 className="font-bold text-white uppercase tracking-wider text-[11px]">
+                        Donor &amp; Contact Information
+                      </h4>
+                    </div>
+
+                    <div className="space-y-2 pt-0.5">
+                      <div>
+                        <span className="text-[10px] uppercase text-slate-400 block font-semibold">Full Name</span>
+                        <span className="text-sm font-bold text-white block mt-0.5">{selectedDonation.donor_name}</span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                        <div className="rounded-xl bg-black/60 border border-zinc-800 p-2.5">
+                          <span className="text-[10px] uppercase text-slate-400 block font-semibold flex items-center gap-1">
+                            <Mail size={11} className="text-[#FFC107]" /> Email Address
+                          </span>
+                          <div className="flex items-center justify-between mt-1 gap-1">
+                            <a 
+                              href={`mailto:${selectedDonation.email || ""}`} 
+                              className="text-white hover:text-[#FFC107] truncate block font-medium"
+                              title={selectedDonation.email || "No email"}
+                            >
+                              {selectedDonation.email || "Not specified"}
+                            </a>
+                            {selectedDonation.email && (
+                              <button
+                                type="button"
+                                onClick={() => copyToClipboard(selectedDonation.email)}
+                                className="text-[10px] text-slate-400 hover:text-[#FFC107] shrink-0 px-1"
+                              >
+                                Copy
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="rounded-xl bg-black/60 border border-zinc-800 p-2.5">
+                          <span className="text-[10px] uppercase text-slate-400 block font-semibold flex items-center gap-1">
+                            <Phone size={11} className="text-[#FFC107]" /> Contact Phone
+                          </span>
+                          <div className="flex items-center justify-between mt-1 gap-1">
+                            <a 
+                              href={`tel:${selectedDonation.phone || ""}`} 
+                              className="text-white hover:text-[#FFC107] truncate block font-medium"
+                              title={selectedDonation.phone || "No phone"}
+                            >
+                              {selectedDonation.phone || "Not specified"}
+                            </a>
+                            {selectedDonation.phone && (
+                              <button
+                                type="button"
+                                onClick={() => copyToClipboard(selectedDonation.phone)}
+                                className="text-[10px] text-slate-400 hover:text-[#FFC107] shrink-0 px-1"
+                              >
+                                Copy
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-3 space-y-1">
-                    <span className="text-[10px] font-bold uppercase text-slate-400 block">Members</span>
-                    <span className="font-extrabold text-[#FFC107] block">{parsed.members} Member(s)</span>
+
+                  {/* Card B: Event & Dedication Schedule */}
+                  <div className="rounded-2xl border border-zinc-800/90 bg-zinc-900/60 p-5 space-y-3">
+                    <div className="flex items-center gap-2 border-b border-zinc-800 pb-2.5">
+                      <Calendar size={16} className="text-[#FFC107]" />
+                      <h4 className="font-bold text-white uppercase tracking-wider text-[11px]">
+                        Sponsorship &amp; Event Schedule
+                      </h4>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 pt-0.5">
+                      <div>
+                        <span className="text-[10px] uppercase text-slate-400 block font-semibold">Initiative / Cause</span>
+                        <span className="text-xs font-bold text-white block mt-0.5 truncate" title={causeTitle}>
+                          {causeTitle}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] uppercase text-slate-400 block font-semibold">Beneficiary Volume</span>
+                        <span className="text-xs font-extrabold text-[#FFC107] block mt-0.5">
+                          {membersCount} Member(s)
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] uppercase text-slate-400 block font-semibold">Execution Date</span>
+                        <span className="text-xs font-bold text-white block mt-0.5">
+                          {selectedDonation.donation_date || selectedDonation.created_at?.split("T")[0]}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] uppercase text-slate-400 block font-semibold">Dedication Purpose</span>
+                        <span className="text-xs font-bold text-white block mt-0.5 truncate">
+                          {selectedDonation.dedication_type || "General Donation"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-3 space-y-1">
-                    <span className="text-[10px] font-bold uppercase text-slate-400 block">Execution Date</span>
-                    <span className="font-bold text-white flex items-center gap-1">
-                      <Calendar size={12} className="text-[#FFC107]" />
-                      {selectedDonation.donation_date || selectedDonation.created_at?.split("T")[0]}
+
+                </div>
+
+                {/* ── 3. ITEMIZED FINANCIAL & FULFILLMENT BREAKDOWN (CLEAN TABLE WITH PRICES) ── */}
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 overflow-hidden shadow-sm">
+                  <div className="px-5 py-3.5 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/60">
+                    <div className="flex items-center gap-2">
+                      <Receipt size={16} className="text-[#FFC107]" />
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                        Itemized Cost &amp; Customization Breakdown
+                      </h4>
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-400">
+                      Calculated for {membersCount} Member(s)
                     </span>
                   </div>
-                  <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-3 space-y-1">
-                    <span className="text-[10px] font-bold uppercase text-slate-400 block">Dedication</span>
-                    <span className="font-bold text-white block truncate">{selectedDonation.dedication_type || "General Donation"}</span>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-zinc-800 bg-black/40 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          <th className="px-5 py-3">Item / Customization</th>
+                          <th className="px-4 py-3">Category</th>
+                          <th className="px-4 py-3 text-right">Unit Rate</th>
+                          <th className="px-4 py-3 text-center">Quantity</th>
+                          <th className="px-5 py-3 text-right">Subtotal Price</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-zinc-800/60">
+                        {/* 1. Base Sponsorship */}
+                        <tr className="hover:bg-zinc-800/30 transition">
+                          <td className="px-5 py-3 font-bold text-white">
+                            {causeTitle}
+                          </td>
+                          <td className="px-4 py-3 text-slate-400">
+                            Core Sponsorship
+                          </td>
+                          <td className="px-4 py-3 text-right text-slate-300 font-mono">
+                            ₹{baseUnitCost.toLocaleString()}
+                          </td>
+                          <td className="px-4 py-3 text-center font-bold text-slate-200">
+                            {membersCount} Member(s)
+                          </td>
+                          <td className="px-5 py-3 text-right font-extrabold text-white font-mono">
+                            ₹{baseSubtotal.toLocaleString()}
+                          </td>
+                        </tr>
+
+                        {/* 2. Sub-Item Add-ons */}
+                        {parsed.subItemAddons.map((addon, idx) => (
+                          <tr key={`subaddon-${idx}`} className="hover:bg-zinc-800/30 transition bg-amber-500/5">
+                            <td className="px-5 py-3 font-semibold text-amber-200 flex items-center gap-2">
+                              <span className="h-1.5 w-1.5 rounded-full bg-[#FFC107]" />
+                              Add-on: {addon.title}
+                            </td>
+                            <td className="px-4 py-3 text-amber-400/80">
+                              Sub-Item Add-on
+                            </td>
+                            <td className="px-4 py-3 text-right text-amber-200 font-mono">
+                              +₹{addon.cost || 0}
+                            </td>
+                            <td className="px-4 py-3 text-center text-slate-300 font-bold">
+                              {membersCount} Units
+                            </td>
+                            <td className="px-5 py-3 text-right font-extrabold text-amber-300 font-mono">
+                              +₹{((addon.cost || 0) * membersCount).toLocaleString()}
+                            </td>
+                          </tr>
+                        ))}
+
+                        {/* 3. Photo on Packing */}
+                        {parsed.photoUrl && (
+                          <tr className="hover:bg-zinc-800/30 transition bg-zinc-950/40">
+                            <td className="px-5 py-3 font-semibold text-white flex items-center gap-2">
+                              <ImageIcon size={14} className="text-[#FFC107] shrink-0" />
+                              Donor Photo Printed on Packing
+                            </td>
+                            <td className="px-4 py-3 text-slate-400">
+                              Packaging Proof
+                            </td>
+                            <td className="px-4 py-3 text-right text-slate-300 font-mono">
+                              +₹{photoUnitCost}
+                            </td>
+                            <td className="px-4 py-3 text-center text-slate-300 font-bold">
+                              {membersCount} Packages
+                            </td>
+                            <td className="px-5 py-3 text-right font-extrabold text-white font-mono">
+                              +₹{photoTotalCost.toLocaleString()}
+                            </td>
+                          </tr>
+                        )}
+
+                        {/* 4. Dedication Box Label */}
+                        {parsed.labelName && (
+                          <tr className="hover:bg-zinc-800/30 transition bg-zinc-950/40">
+                            <td className="px-5 py-3 font-semibold text-white flex items-center gap-2">
+                              <Tag size={14} className="text-[#FFC107] shrink-0" />
+                              Custom Printed Dedication Label
+                            </td>
+                            <td className="px-4 py-3 text-slate-400">
+                              Packaging Proof
+                            </td>
+                            <td className="px-4 py-3 text-right text-slate-300 font-mono">
+                              +₹{textUnitCost}
+                            </td>
+                            <td className="px-4 py-3 text-center text-slate-300 font-bold">
+                              {membersCount} Packages
+                            </td>
+                            <td className="px-5 py-3 text-right font-extrabold text-white font-mono">
+                              +₹{textTotalCost.toLocaleString()}
+                            </td>
+                          </tr>
+                        )}
+
+                        {/* 5. Celebration Video */}
+                        {parsed.isVideoRequested && (
+                          <tr className="hover:bg-zinc-800/30 transition bg-purple-950/20">
+                            <td className="px-5 py-3 font-semibold text-purple-200 flex items-center gap-2">
+                              <Video size={14} className="text-purple-400 shrink-0" />
+                              Celebration Video Recording Request
+                            </td>
+                            <td className="px-4 py-3 text-purple-300">
+                              Media Production
+                            </td>
+                            <td className="px-4 py-3 text-right text-purple-200 font-mono">
+                              Flat ₹{parsed.videoCost}
+                            </td>
+                            <td className="px-4 py-3 text-center text-purple-200 font-bold">
+                              1 Video Drive
+                            </td>
+                            <td className="px-5 py-3 text-right font-extrabold text-purple-300 font-mono">
+                              +₹{videoTotalCost.toLocaleString()}
+                            </td>
+                          </tr>
+                        )}
+
+                        {/* 6. Extra Items */}
+                        {parsed.extras.map((extra, idx) => (
+                          <tr key={`extra-${idx}`} className="hover:bg-zinc-800/30 transition bg-zinc-950/30">
+                            <td className="px-5 py-3 font-semibold text-slate-300 flex items-center gap-2">
+                              <Gift size={13} className="text-[#FFC107] shrink-0" />
+                              Extra Item: {extra}
+                            </td>
+                            <td className="px-4 py-3 text-slate-400">
+                              Gift Extra
+                            </td>
+                            <td className="px-4 py-3 text-right text-slate-400 italic">
+                              Included
+                            </td>
+                            <td className="px-4 py-3 text-center text-slate-300 font-bold">
+                              {membersCount} Units
+                            </td>
+                            <td className="px-5 py-3 text-right text-slate-400 italic">
+                              Included
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+
+                      {/* Total Footer Row */}
+                      <tfoot>
+                        <tr className="border-t-2 border-zinc-700 bg-black/80">
+                          <td colSpan={4} className="px-5 py-3.5 text-right font-extrabold text-white uppercase tracking-wider text-xs">
+                            Grand Total Received:
+                          </td>
+                          <td className="px-5 py-3.5 text-right font-black text-emerald-400 text-base font-mono">
+                            ₹{totalPaid.toLocaleString()}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
                   </div>
                 </div>
 
-                {/* ── 1. CELEBRATION VIDEO ALERT (If Donor Requested) ── */}
+                {/* ── 4. PACKAGING & DISPATCH PRODUCTION SPECS (2 Clean Columns) ── */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  
+                  {/* Photo on Packaging Spec */}
+                  <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 space-y-3">
+                    <div className="flex items-center justify-between border-b border-zinc-800 pb-2.5">
+                      <span className="text-xs font-bold text-white flex items-center gap-2">
+                        <ImageIcon size={15} className="text-[#FFC107]" />
+                        Photo for Box Sticker Print
+                      </span>
+                      {parsed.photoUrl && (
+                        <span className="text-[10px] font-bold text-slate-400">
+                          Print {membersCount} Copies
+                        </span>
+                      )}
+                    </div>
+
+                    {parsed.photoUrl ? (
+                      <div className="flex items-center gap-4 bg-black/60 p-3.5 rounded-xl border border-zinc-800">
+                        <div 
+                          onClick={() => setPreviewingPhotoUrl(parsed.photoUrl)}
+                          className="relative h-24 w-24 rounded-xl overflow-hidden border border-zinc-700 shrink-0 cursor-pointer group/zoom shadow-sm"
+                          title="Click to view full size"
+                        >
+                          <img 
+                            src={parsed.photoUrl} 
+                            alt="Donor packaging proof" 
+                            className="h-full w-full object-cover group-hover/zoom:scale-105 transition-transform" 
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/zoom:opacity-100 flex items-center justify-center text-white transition-opacity">
+                            <Maximize2 size={16} />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2 flex-1 text-xs">
+                          <p className="text-slate-300 leading-relaxed">
+                            Print <strong>{membersCount}</strong> high-resolution copies on glossy sticker paper and affix neatly to package covers.
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <button
+                              type="button"
+                              disabled={downloadingPhoto}
+                              onClick={() => handleDownloadPhoto(parsed.photoUrl, selectedDonation.donor_name, selectedDonation.id)}
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-[#FFC107] px-3 py-1.5 text-xs font-bold text-black hover:opacity-90 active:scale-95 transition disabled:opacity-50"
+                            >
+                              <Download size={12} />
+                              <span>{downloadingPhoto ? "Downloading..." : "Download Photo"}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setPreviewingPhotoUrl(parsed.photoUrl)}
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-800 border border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-200 hover:text-white transition"
+                            >
+                              <Eye size={12} /> Zoom
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 rounded-xl bg-black/40 border border-zinc-800 text-center text-xs text-slate-500 italic">
+                        Standard packaging applied (no custom photo requested).
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Dedication Box Sticker Spec */}
+                  <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 space-y-3">
+                    <div className="flex items-center justify-between border-b border-zinc-800 pb-2.5">
+                      <span className="text-xs font-bold text-white flex items-center gap-2">
+                        <Tag size={15} className="text-[#FFC107]" />
+                        Printed Box Dedication Label
+                      </span>
+                      {parsed.labelName && (
+                        <button
+                          onClick={() => copyToClipboard(`${parsed.labelName}${parsed.labelDesc ? ` - ${parsed.labelDesc}` : ""}`)}
+                          className="text-[11px] font-bold text-[#FFC107] hover:underline flex items-center gap-1"
+                        >
+                          {copiedLabel ? <Check size={12} /> : <Copy size={12} />}
+                          {copiedLabel ? "Copied!" : "Copy Text"}
+                        </button>
+                      )}
+                    </div>
+
+                    {parsed.labelName ? (
+                      <div className="space-y-2">
+                        <div className="rounded-xl border-2 border-dashed border-amber-500/40 bg-amber-500/5 p-3.5 text-center space-y-1">
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-[#FFC107] block">
+                            Sponsored with Love
+                          </span>
+                          <span className="text-sm font-extrabold text-white block">
+                            {parsed.labelName}
+                          </span>
+                          {parsed.labelDesc && (
+                            <span className="text-xs text-amber-200/90 italic block">
+                              &quot;{parsed.labelDesc}&quot;
+                            </span>
+                          )}
+                          <span className="text-[9px] text-slate-400 block pt-1">
+                            Print requirement: {membersCount} stickers
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 rounded-xl bg-black/40 border border-zinc-800 text-center text-xs text-slate-500 italic">
+                        Standard foundation packaging applied (no custom label text requested).
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+
+                {/* ── 5. CELEBRATION VIDEO NOTIFICATION (IF REQUESTED) ── */}
                 {parsed.isVideoRequested && (
-                  <div className="rounded-2xl bg-purple-950/40 border-2 border-purple-600/70 p-4 space-y-2">
+                  <div className="rounded-2xl bg-purple-950/40 border-2 border-purple-500/60 p-4 sm:p-5 space-y-2">
                     <div className="flex items-center gap-2">
                       <Video size={18} className="text-purple-400 shrink-0" />
                       <span className="text-xs font-extrabold uppercase tracking-wider text-purple-200">
-                        Celebration Video Requested by Donor
+                        Celebration Video Coverage Requested
                       </span>
                     </div>
                     <p className="text-xs text-purple-200/90 leading-relaxed">
-                      ⚠️ <strong>Action Required:</strong> The donor paid the one-time video recording charge. Please ensure field coordinators record a celebration clip during meal/kit distribution and WhatsApp/deliver it to the donor within 24 to 48 hours.
+                      <strong>Coordinator Action Required:</strong> The donor completed payment for personalized celebration video coverage (Flat ₹{parsed.videoCost}). Ensure field coordinators record a high-quality 30 to 60-second celebration video of the distribution and deliver it to the donor via WhatsApp / Email within 24 to 48 hours.
                     </p>
                   </div>
                 )}
 
-                {/* ── 2. PRINTED BOX STICKER LABEL PREVIEW ── */}
-                {parsed.labelName ? (
-                  <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                        <Tag size={14} className="text-[#FFC107]" /> Printed Dedication Label on Boxes
-                      </span>
-                      <button
-                        onClick={() => copyToClipboard(`${parsed.labelName}${parsed.labelDesc ? ` - ${parsed.labelDesc}` : ""}`)}
-                        className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FFC107] hover:underline"
-                      >
-                        {copiedLabel ? <Check size={12} /> : <Copy size={12} />}
-                        {copiedLabel ? "Copied!" : "Copy Sticker Text"}
-                      </button>
-                    </div>
-
-                    {/* Simulated Sticker Visual */}
-                    <div className="relative rounded-xl border-2 border-dashed border-amber-400/50 bg-amber-500/5 p-4 text-center space-y-1">
-                      <div className="text-[10px] font-bold uppercase tracking-widest text-[#FFC107]">
-                        Sponsored with Love
-                      </div>
-                      <div className="text-base font-extrabold text-white">
-                        {parsed.labelName}
-                      </div>
-                      {parsed.labelDesc && (
-                        <div className="text-xs font-medium text-amber-200/80 italic">
-                          &quot;{parsed.labelDesc}&quot;
-                        </div>
-                      )}
-                      <div className="text-[9px] text-slate-400 pt-1">
-                        Print 1 sticker per package (Quantity needed: {parsed.members} stickers)
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
-
-                {/* ── 3. PHOTO TO ATTACH ON PACKING (WITH DIRECT DOWNLOAD) ── */}
-                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                      <ImageIcon size={14} className="text-[#FFC107]" /> Donor Photo for Packaging
-                    </span>
-                    {parsed.photoUrl && (
-                      <span className="text-[11px] font-bold text-slate-400">
-                        Print {parsed.members} copy / copies
-                      </span>
-                    )}
-                  </div>
-
-                  {parsed.photoUrl ? (
-                    <div className="flex flex-col sm:flex-row items-center gap-4 bg-zinc-950 p-3.5 rounded-xl border border-zinc-800">
-                      <img 
-                        src={parsed.photoUrl} 
-                        alt="Donor packing proof" 
-                        className="h-28 w-28 rounded-xl object-cover border border-zinc-700 shrink-0" 
-                      />
-                      <div className="space-y-2.5 text-center sm:text-left flex-1">
-                        <p className="text-xs text-zinc-300 leading-relaxed">
-                          Donor provided this photo to be printed and attached directly to the meal / gift packages.
-                        </p>
-                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                          <button
-                            type="button"
-                            disabled={downloadingPhoto}
-                            onClick={() => handleDownloadPhoto(parsed.photoUrl, selectedDonation.donor_name, selectedDonation.id)}
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-[#FFC107] px-3.5 py-2 text-xs font-bold text-black hover:opacity-90 active:scale-95 transition disabled:opacity-50"
-                          >
-                            <Download size={13} />
-                            <span>{downloadingPhoto ? "Downloading..." : "Download High-Res Photo"}</span>
-                          </button>
-
-                          <a 
-                            href={parsed.photoUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-800 border border-zinc-700 px-3.5 py-2 text-xs font-bold text-zinc-200 hover:text-white transition"
-                          >
-                            <ExternalLink size={13} /> Open Tab
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="rounded-xl bg-zinc-950/60 border border-zinc-800/80 p-3 text-center text-xs text-slate-500 italic">
-                      No packaging photo was requested or uploaded for this donation.
-                    </div>
-                  )}
-                </div>
-
-                {/* ── 4. SPECIAL EXTRAS CHECKLIST (MULTIPLIED) ── */}
-                {parsed.extras.length > 0 ? (
-                  <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4 space-y-3">
-                    <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                      <Gift size={14} className="text-[#FFC107]" /> Extra Gift Items Checklist
-                    </span>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      {parsed.extras.map((extraItem, idx) => (
-                        <div 
-                          key={idx} 
-                          className="flex items-center justify-between rounded-xl bg-amber-950/30 border border-amber-800/40 px-3.5 py-2.5 text-xs"
-                        >
-                          <span className="font-semibold text-amber-200">{extraItem}</span>
-                          <span className="font-extrabold text-[#FFC107] bg-black/40 px-2 py-0.5 rounded-md">
-                            {parsed.members} Units ({parsed.members} × 1)
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-
-                {/* ── 5. DONOR'S PERSONAL MESSAGE / BLESSING ── */}
+                {/* ── 6. DONOR'S PERSONAL MESSAGE / BLESSING ── */}
                 {parsed.generalMessage && (
                   <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 space-y-1.5">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block flex items-center gap-1">
-                      <MessageSquare size={11} className="text-[#FFC107]" /> Donor Blessing / Encouraging Note
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                      <MessageSquare size={13} className="text-[#FFC107]" /> Donor Blessing / Personal Dedication Note
                     </span>
-                    <div className="text-xs font-medium text-zinc-200 italic bg-zinc-950 p-3 rounded-xl border border-zinc-800">
+                    <div className="text-xs font-medium text-zinc-200 italic bg-black/60 p-3 rounded-xl border border-zinc-800">
                       &quot;{parsed.generalMessage}&quot;
                     </div>
                   </div>
                 )}
 
-                {/* Modal Footer Controls */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-zinc-800">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-400">Mark as Delivered:</span>
+                {/* ── 7. MODAL ACTIONS & DISPATCH SWITCH ── */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-zinc-800">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-slate-300">Mark as Delivered &amp; Fulfilled:</span>
                     <button
                       type="button"
                       onClick={() => handleToggleStatus(selectedDonation.id, isDonated)}
@@ -713,18 +1056,23 @@ export default function AdminDonationsPage() {
                         }`}
                       />
                     </button>
+                    <span className={`text-[11px] font-bold ${isDonated ? "text-emerald-400" : "text-slate-400"}`}>
+                      {isDonated ? "Status: Completed" : "Status: Pending"}
+                    </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
                     <button
+                      type="button"
                       onClick={() => window.print()}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-bold text-zinc-200 hover:bg-zinc-700 transition"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-xs font-bold text-zinc-200 hover:bg-zinc-700 transition"
                     >
-                      <Printer size={13} /> Print Sheet
+                      <Printer size={14} /> Print Manifest
                     </button>
                     <button
+                      type="button"
                       onClick={() => setSelectedDonation(null)}
-                      className="rounded-xl bg-[#FFC107] px-5 py-2 text-xs font-bold text-black hover:opacity-90 transition"
+                      className="rounded-xl bg-[#FFC107] px-6 py-2.5 text-xs font-extrabold text-black hover:opacity-90 active:scale-95 transition"
                     >
                       Close
                     </button>
@@ -735,6 +1083,63 @@ export default function AdminDonationsPage() {
             </div>
           );
         })()}
+      </AnimatePresence>
+
+      {/* High-Resolution Photo Zoom Lightbox */}
+      <AnimatePresence>
+        {previewingPhotoUrl && (
+          <div
+            className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
+            onClick={() => setPreviewingPhotoUrl(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative max-w-2xl w-full bg-[#111] rounded-3xl border border-zinc-800 p-4 sm:p-6 shadow-2xl space-y-4"
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+                <span className="text-xs font-bold text-white flex items-center gap-2">
+                  <ImageIcon size={15} className="text-[#FFC107]" /> High-Resolution Packaging Photo
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPreviewingPhotoUrl(null)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-white"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="relative aspect-square max-h-[65vh] w-full rounded-2xl overflow-hidden border border-zinc-800 bg-black flex items-center justify-center">
+                <img
+                  src={previewingPhotoUrl}
+                  alt="Packaging proof full size"
+                  className="h-full w-full object-contain"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <a
+                  href={previewingPhotoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-800 border border-zinc-700 px-4 py-2 text-xs font-bold text-zinc-200 hover:text-white transition"
+                >
+                  <ExternalLink size={13} /> Open in New Tab
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setPreviewingPhotoUrl(null)}
+                  className="rounded-xl bg-[#FFC107] px-5 py-2 text-xs font-bold text-black hover:opacity-90 transition"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
 
     </div>

@@ -14,6 +14,7 @@ import {
   ArrowUpRight,
   Clock,
   CheckCircle2,
+  Users,
 } from "lucide-react";
 
 // Adjust these import paths if your action files live somewhere else.
@@ -22,6 +23,7 @@ import { getContactInquiries } from "./contact/actions";
 import { getGalleryImages } from "./gallery/actions";
 import { getCsrProposals } from "./csr/actions";
 import { getCausesData } from "./causes/actions";
+import { getVolunteers } from "./volunteers/actions";
 
 const display = Fraunces({
   subsets: ["latin"],
@@ -41,6 +43,7 @@ export default function AdminDashboardPage() {
   const [gallery, setGallery] = useState<any[]>([]);
   const [proposals, setProposals] = useState<any[]>([]);
   const [causes, setCauses] = useState<any[]>([]);
+  const [volunteers, setVolunteers] = useState<any[]>([]);
   
   // NEW: State to hold the logged-in user's details
   const [userName, setUserName] = useState("Admin");
@@ -53,6 +56,7 @@ export default function AdminDashboardPage() {
     gallery: { loading: true, error: null },
     proposals: { loading: true, error: null },
     causes: { loading: true, error: null },
+    volunteers: { loading: true, error: null },
   });
 
   useEffect(() => {
@@ -123,6 +127,17 @@ export default function AdminDashboardPage() {
         setSection("causes", { loading: false });
       }
     })();
+
+    (async () => {
+      try {
+        const data = await getVolunteers();
+        setVolunteers(data || []);
+      } catch (err: any) {
+        setSection("volunteers", { error: err.message || "Failed to load volunteers." });
+      } finally {
+        setSection("volunteers", { loading: false });
+      }
+    })();
   }
 
   const anyLoading = Object.values(status).some((s) => s.loading);
@@ -145,7 +160,15 @@ export default function AdminDashboardPage() {
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5);
 
+  const pendingVolunteers = volunteers.filter((v: any) => (v.status || "pending").toLowerCase() === "pending").length;
+
   const quickLinks = [
+    {
+      href: "/adminfoundations/volunteers",
+      label: "Volunteer Hub",
+      icon: Users,
+      stat: `${pendingVolunteers} pending approval`,
+    },
     {
       href: "/adminfoundations/donations",
       label: "Donations",
@@ -194,21 +217,16 @@ export default function AdminDashboardPage() {
         {/* UPDATED: Page Title & User Greeting */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-extrabold text-white sm:text-3xl flex items-center gap-2">
-              Welcome back, {userName.split(" ")[0]} 👋
+            <h1 className="text-2xl font-extrabold text-white sm:text-3xl">
+              Welcome back, {userRole === "admin" ? "Admin" : userName.split(" ")[0]}
             </h1>
             <div className="flex items-center gap-2 mt-1.5">
               <p className="text-xs sm:text-sm text-slate-400">
                 Foundation Dashboard Overview
               </p>
-              {staffId && (
+              {staffId && userRole !== "admin" && (
                 <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-mono text-zinc-300">
                   {staffId}
-                </span>
-              )}
-              {userRole === "admin" && (
-                <span className="rounded bg-rose-500/10 px-1.5 py-0.5 text-[9px] font-bold text-rose-500 uppercase tracking-widest">
-                  Master Admin
                 </span>
               )}
             </div>
@@ -235,72 +253,125 @@ export default function AdminDashboardPage() {
         )}
 
         {/* KPI Stat Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="h-8 w-8 rounded-xl bg-[#798321]/10 text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107] flex items-center justify-center">
-                <IndianRupee size={16} />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+          <Link
+            href="/adminfoundations/donations"
+            className="group block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-[#798321] hover:shadow-md hover:scale-[1.02] dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-[#FFC107] cursor-pointer"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-xl bg-[#798321]/10 text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107] flex items-center justify-center transition-colors group-hover:bg-[#798321] group-hover:text-white dark:group-hover:bg-[#FFC107] dark:group-hover:text-black">
+                  <IndianRupee size={16} />
+                </div>
+                <span className="text-[10px] font-bold uppercase text-slate-400">Total Raised</span>
               </div>
-              <span className="text-[10px] font-bold uppercase text-slate-400">Total Raised</span>
+              <ArrowUpRight size={14} className="text-slate-400 group-hover:text-[#798321] dark:group-hover:text-[#FFC107] transition-colors" />
             </div>
             <span className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400">
               ₹{totalDonationAmount.toLocaleString()}
             </span>
-          </div>
+          </Link>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="h-8 w-8 rounded-xl bg-[#798321]/10 text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107] flex items-center justify-center">
-                <Heart size={16} />
+          <Link
+            href="/adminfoundations/donations"
+            className="group block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-[#798321] hover:shadow-md hover:scale-[1.02] dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-[#FFC107] cursor-pointer"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-xl bg-[#798321]/10 text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107] flex items-center justify-center transition-colors group-hover:bg-[#798321] group-hover:text-white dark:group-hover:bg-[#FFC107] dark:group-hover:text-black">
+                  <Heart size={16} />
+                </div>
+                <span className="text-[10px] font-bold uppercase text-slate-400">Donations</span>
               </div>
-              <span className="text-[10px] font-bold uppercase text-slate-400">Donations</span>
+              <ArrowUpRight size={14} className="text-slate-400 group-hover:text-[#798321] dark:group-hover:text-[#FFC107] transition-colors" />
             </div>
             <span className="text-lg font-extrabold text-[#798321] dark:text-[#FFC107]">
               {donatedCount} <span className="text-xs font-semibold text-slate-400">/ {donations.length}</span>
             </span>
-          </div>
+          </Link>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="h-8 w-8 rounded-xl bg-[#798321]/10 text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107] flex items-center justify-center">
-                <MessageSquare size={16} />
+          <Link
+            href="/adminfoundations/contact"
+            className="group block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-[#798321] hover:shadow-md hover:scale-[1.02] dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-[#FFC107] cursor-pointer"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-xl bg-[#798321]/10 text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107] flex items-center justify-center transition-colors group-hover:bg-[#798321] group-hover:text-white dark:group-hover:bg-[#FFC107] dark:group-hover:text-black">
+                  <MessageSquare size={16} />
+                </div>
+                <span className="text-[10px] font-bold uppercase text-slate-400">Inquiries</span>
               </div>
-              <span className="text-[10px] font-bold uppercase text-slate-400">Pending Inquiries</span>
+              <ArrowUpRight size={14} className="text-slate-400 group-hover:text-[#798321] dark:group-hover:text-[#FFC107] transition-colors" />
             </div>
             <span className="text-lg font-extrabold text-amber-600 dark:text-amber-400">
               {pendingInquiries}
             </span>
-          </div>
+          </Link>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="h-8 w-8 rounded-xl bg-[#798321]/10 text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107] flex items-center justify-center">
-                <Building2 size={16} />
+          <Link
+            href="/adminfoundations/csr"
+            className="group block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-[#798321] hover:shadow-md hover:scale-[1.02] dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-[#FFC107] cursor-pointer"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-xl bg-[#798321]/10 text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107] flex items-center justify-center transition-colors group-hover:bg-[#798321] group-hover:text-white dark:group-hover:bg-[#FFC107] dark:group-hover:text-black">
+                  <Building2 size={16} />
+                </div>
+                <span className="text-[10px] font-bold uppercase text-slate-400">CSR Approved</span>
               </div>
-              <span className="text-[10px] font-bold uppercase text-slate-400">CSR Approved</span>
+              <ArrowUpRight size={14} className="text-slate-400 group-hover:text-[#798321] dark:group-hover:text-[#FFC107] transition-colors" />
             </div>
             <span className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400">
               {approvedCsr} <span className="text-xs font-semibold text-slate-400">/ {proposals.length}</span>
             </span>
-          </div>
+          </Link>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="h-8 w-8 rounded-xl bg-[#798321]/10 text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107] flex items-center justify-center">
-                <ImageIcon size={16} />
+          <Link
+            href="/adminfoundations/gallery"
+            className="group block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-[#798321] hover:shadow-md hover:scale-[1.02] dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-[#FFC107] cursor-pointer"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-xl bg-[#798321]/10 text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107] flex items-center justify-center transition-colors group-hover:bg-[#798321] group-hover:text-white dark:group-hover:bg-[#FFC107] dark:group-hover:text-black">
+                  <ImageIcon size={16} />
+                </div>
+                <span className="text-[10px] font-bold uppercase text-slate-400">Gallery Photos</span>
               </div>
-              <span className="text-[10px] font-bold uppercase text-slate-400">Gallery Photos</span>
+              <ArrowUpRight size={14} className="text-slate-400 group-hover:text-[#798321] dark:group-hover:text-[#FFC107] transition-colors" />
             </div>
             <span className="text-lg font-extrabold text-[#798321] dark:text-[#FFC107]">
               {gallery.length}
             </span>
-          </div>
+          </Link>
+
+          <Link
+            href="/adminfoundations/volunteers"
+            className="group block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-[#798321] hover:shadow-md hover:scale-[1.02] dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-[#FFC107] cursor-pointer"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-xl bg-amber-500/10 text-amber-500 dark:bg-[#FFC107]/10 dark:text-[#FFC107] flex items-center justify-center transition-colors group-hover:bg-[#798321] group-hover:text-white dark:group-hover:bg-[#FFC107] dark:group-hover:text-black">
+                  <Users size={16} />
+                </div>
+                <span className="text-[10px] font-bold uppercase text-slate-400">Pending Volunteer Approval</span>
+              </div>
+              <ArrowUpRight size={14} className="text-slate-400 group-hover:text-[#798321] dark:group-hover:text-[#FFC107] transition-colors" />
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-lg font-extrabold text-amber-500 dark:text-[#FFC107]">
+                {pendingVolunteers}
+              </span>
+              <span className="text-xs font-semibold text-slate-400">
+                / {volunteers.length} total
+              </span>
+            </div>
+          </Link>
         </div>
 
         {/* Quick Links Grid */}
         <div className="mb-8">
           <h2 className="text-sm font-bold text-white mb-4">Manage Sections</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
             {quickLinks.map((link) => {
               const Icon = link.icon;
               return (

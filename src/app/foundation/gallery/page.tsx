@@ -113,10 +113,10 @@ export default function GalleryPage() {
   });
 
   return (
-    <div className={`min-h-screen bg-slate-50 dark:bg-black transition-colors duration-500 ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
+    <div className={`min-h-screen overflow-x-clip bg-slate-50 dark:bg-black transition-colors duration-500 ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
       
       {/* ============ HERO SECTION ============ */}
-      <section className="relative overflow-hidden pt-24 pb-16 sm:pt-32 sm:pb-20 bg-gradient-to-b from-[#24310F] via-[#2F3E14] to-[#F8FAF0] text-white dark:from-black dark:via-black dark:to-black">
+      <section className="relative overflow-hidden pt-10 pb-6 sm:pt-14 sm:pb-8 bg-gradient-to-b from-[#24310F] via-[#2F3E14] to-[#F8FAF0] text-white dark:from-black dark:via-black dark:to-black">
         <motion.div
           aria-hidden="true"
           animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
@@ -144,7 +144,7 @@ export default function GalleryPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="mt-4 text-3xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl"
+            className="mt-2.5 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl"
           >
             Our Photo{" "}
             <span className="bg-gradient-to-r from-[#FFC107] via-amber-300 to-yellow-200 bg-clip-text text-transparent">
@@ -156,7 +156,7 @@ export default function GalleryPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-200 sm:text-base dark:text-neutral-300"
+            className="mx-auto mt-2 max-w-2xl text-xs sm:text-sm leading-relaxed text-slate-200 sm:leading-relaxed dark:text-neutral-300"
           >
             Real photo and video proof of impact — meal drives, education support, and
             community events from RAKVIH Foundation across Bengaluru and beyond.
@@ -165,7 +165,7 @@ export default function GalleryPage() {
       </section>
 
       {/* Filter and Search Bar Section */}
-      <section className="mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 pt-5 sm:pt-7 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           
           <div className="flex flex-wrap items-center gap-2">

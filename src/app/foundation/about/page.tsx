@@ -17,7 +17,10 @@ import {
   Target,
   ArrowRight,
   CheckCircle2,
-  Award 
+  Award,
+  Landmark,
+  Camera,
+  FileCheck
 } from "lucide-react";
 
 // Setup matching website font
@@ -165,7 +168,7 @@ export default function AboutPage() {
   }, []);
 
   return (
-    <div className={`min-h-[100dvh] w-full bg-[#F8FAF0] text-slate-900 dark:bg-black dark:text-slate-100 ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
+    <div className={`min-h-[100dvh] w-full overflow-x-clip bg-[#F8FAF0] text-slate-900 dark:bg-black dark:text-slate-100 ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
 
       {/* NGO / NonProfit schema for search rich results */}
       <script
@@ -174,7 +177,7 @@ export default function AboutPage() {
       />
 
       {/* ============ HERO SECTION ============ */}
-      <section className="relative overflow-hidden pt-24 pb-16 sm:pt-32 sm:pb-20 bg-gradient-to-b from-[#24310F] via-[#2F3E14] to-[#F8FAF0] text-white dark:from-black dark:via-zinc-950 dark:to-black">
+      <section className="relative overflow-hidden pt-10 pb-6 sm:pt-14 sm:pb-8 bg-gradient-to-b from-[#24310F] via-[#2F3E14] to-[#F8FAF0] text-white dark:from-black dark:via-zinc-950 dark:to-black">
         <motion.div
           animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
           transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
@@ -200,7 +203,7 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="mt-4 text-3xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl"
+            className="mt-2.5 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl"
           >
             Empowering Lives Through{" "}
             <span className="bg-gradient-to-r from-[#FFC107] via-amber-300 to-yellow-200 bg-clip-text text-transparent">
@@ -212,7 +215,7 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-200 sm:text-base"
+            className="mx-auto mt-2 max-w-2xl text-xs sm:text-sm leading-relaxed text-slate-200 sm:leading-relaxed"
           >
             RAKVIH Foundation is dedicated to building sustainable futures — feeding the hungry, educating children,
             caring for animals, and uplifting marginalised communities across society. Founded on the belief that
@@ -223,7 +226,7 @@ export default function AboutPage() {
       </section>
 
       {/* ============ WHO WE ARE / MISSION ============ */}
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <section className="mx-auto max-w-6xl px-4 pt-8 pb-12 sm:pt-10 sm:pb-16 lg:px-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-center">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -352,7 +355,7 @@ export default function AboutPage() {
             </div>
           </motion.div>
 
-          {/* Right Side: Certifications & Credentials */}
+          {/* Right Side: Trust & Compliance Badges */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -361,91 +364,112 @@ export default function AboutPage() {
           >
             <div className="mb-6">
               <div className="inline-flex items-center gap-2 rounded-full bg-[#798321]/10 px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107] mb-2">
-                <Award className="h-3.5 w-3.5" /> Certifications
+                <ShieldCheck className="h-3.5 w-3.5" /> Trust &amp; Compliance
               </div>
               <h2 className="text-xl font-extrabold text-[#24310F] dark:text-white sm:text-2xl mb-2">
-                Credentials & Compliance
+                Transparency &amp; Legal Recognition
               </h2>
               <p className="text-[11px] sm:text-xs text-slate-600 dark:text-zinc-400 leading-relaxed max-w-2xl">
-                We are committed to delivering quality-driven, compliant, and globally recognized solutions. Our certifications reflect our dedication to excellence and regulatory compliance.
+                Every rupee you entrust to RAKVIH Foundation is accounted for, tax-deductible under Indian law, and delivered with verifiable proof to real beneficiaries.
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
               
-              {/* ISO Certification */}
-              <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-zinc-800 dark:bg-[#0d0d0d] flex flex-col items-center justify-center">
-                <div className="absolute top-0 left-0 h-1 w-0 bg-gradient-to-r from-transparent via-[#FFC107] to-transparent transition-all duration-500 group-hover:w-full"></div>
-                <div className="flex flex-col items-center text-center">
-                  <svg className="w-14 h-14 mb-3 drop-shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#FFD700" />
-                        <stop offset="50%" stopColor="#F8C210" />
-                        <stop offset="100%" stopColor="#B8860B" />
-                      </linearGradient>
-                    </defs>
-                    <path d="M25,85 L15,100 L35,92 L50,100 L65,92 L85,100 L75,85 Z" fill="#B8860B" />
-                    <circle cx="50" cy="45" r="40" fill="url(#gold)" stroke="#FFF" strokeWidth="2"/>
-                    <circle cx="50" cy="45" r="32" fill="none" stroke="#FFF" strokeWidth="1.5" strokeDasharray="4,4"/>
-                    <text x="50" y="45" fontFamily="Arial" fontSize="20" fontWeight="900" fill="#111" textAnchor="middle">ISO</text>
-                    <text x="50" y="60" fontFamily="Arial" fontSize="12" fontWeight="bold" fill="#111" textAnchor="middle">9001:2015</text>
-                  </svg>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">ISO 9001:2015</h4>
-                  <p className="text-[10px] text-slate-500 dark:text-zinc-400">Demonstrating our commitment to maintaining an internationally recognized Quality Management System.</p>
+              {/* 1. 80G Certified */}
+              <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-zinc-800 dark:bg-[#0d0d0d] flex flex-col justify-between">
+                <div className="absolute top-0 left-0 h-1 w-0 bg-gradient-to-r from-[#798321] via-[#FFC107] to-amber-500 transition-all duration-500 group-hover:w-full"></div>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:bg-[#FFC107]/15 dark:text-[#FFC107] transition-transform duration-300 group-hover:scale-110">
+                      <Landmark className="h-6 w-6" />
+                    </div>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                      <CheckCircle2 size={11} /> Verified
+                    </span>
+                  </div>
+                  <h3 className="mt-4 text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                    80G Certified
+                  </h3>
+                  <p className="text-xs font-semibold text-[#798321] dark:text-[#FFC107] mt-0.5">
+                    Tax exemption eligible
+                  </p>
                 </div>
+                <p className="mt-3 text-[11px] text-slate-500 dark:text-zinc-400 leading-relaxed pt-2 border-t border-slate-100 dark:border-zinc-800/80">
+                  Eligible for 50% tax deduction under Section 80G of the Income Tax Act with instant 10BE receipt.
+                </p>
               </div>
 
-              {/* Startup India */}
-              <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-zinc-800 dark:bg-[#0d0d0d] flex flex-col items-center justify-center">
-                <div className="absolute top-0 left-0 h-1 w-0 bg-gradient-to-r from-transparent via-[#FFC107] to-transparent transition-all duration-500 group-hover:w-full"></div>
-                <div className="flex flex-col items-center text-center">
-                  <svg className="w-14 h-14 mb-3 drop-shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M25,85 L15,100 L35,92 L50,100 L65,92 L85,100 L75,85 Z" fill="#B8860B" />
-                    <circle cx="50" cy="45" r="40" fill="url(#gold)" stroke="#FFF" strokeWidth="2"/>
-                    <circle cx="50" cy="45" r="32" fill="none" stroke="#FFF" strokeWidth="1.5" strokeDasharray="4,4"/>
-                    <path d="M35,60 L45,45 L55,50 L65,30 L60,30 L55,45 L45,40 L35,55 Z" fill="#111" />
-                    <text x="50" y="28" fontFamily="Arial" fontSize="11" fontWeight="900" fill="#111" textAnchor="middle">STARTUP</text>
-                    <text x="50" y="70" fontFamily="Arial" fontSize="11" fontWeight="900" fill="#111" textAnchor="middle">INDIA</text>
-                  </svg>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">Startup India</h4>
-                  <p className="text-[10px] text-slate-500 dark:text-zinc-400">Officially recognized under the Government of India's initiative for our innovation-driven approach.</p>
+              {/* 2. Secure Donation */}
+              <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-zinc-800 dark:bg-[#0d0d0d] flex flex-col justify-between">
+                <div className="absolute top-0 left-0 h-1 w-0 bg-gradient-to-r from-[#798321] via-emerald-400 to-emerald-600 transition-all duration-500 group-hover:w-full"></div>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400 transition-transform duration-300 group-hover:scale-110">
+                      <ShieldCheck className="h-6 w-6" />
+                    </div>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                      <CheckCircle2 size={11} /> Encrypted
+                    </span>
+                  </div>
+                  <h3 className="mt-4 text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                    Secure Donation
+                  </h3>
+                  <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                    Encrypted &amp; safe
+                  </p>
                 </div>
+                <p className="mt-3 text-[11px] text-slate-500 dark:text-zinc-400 leading-relaxed pt-2 border-t border-slate-100 dark:border-zinc-800/80">
+                  256-bit bank-grade SSL encryption powered by Razorpay with zero storage of payment credentials.
+                </p>
               </div>
 
-              {/* IEC */}
-              <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-zinc-800 dark:bg-[#0d0d0d] flex flex-col items-center justify-center">
-                <div className="absolute top-0 left-0 h-1 w-0 bg-gradient-to-r from-transparent via-[#FFC107] to-transparent transition-all duration-500 group-hover:w-full"></div>
-                <div className="flex flex-col items-center text-center">
-                  <svg className="w-14 h-14 mb-3 drop-shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M25,85 L15,100 L35,92 L50,100 L65,92 L85,100 L75,85 Z" fill="#B8860B" />
-                    <circle cx="50" cy="45" r="40" fill="url(#gold)" stroke="#FFF" strokeWidth="2"/>
-                    <circle cx="50" cy="45" r="32" fill="none" stroke="#FFF" strokeWidth="1.5" strokeDasharray="4,4"/>
-                    <circle cx="50" cy="45" r="18" fill="none" stroke="#111" strokeWidth="2"/>
-                    <path d="M32,45 Q50,20 68,45 Q50,70 32,45 Z" fill="none" stroke="#111" strokeWidth="2"/>
-                    <line x1="32" y1="45" x2="68" y2="45" stroke="#111" strokeWidth="2"/>
-                    <text x="50" y="72" fontFamily="Arial" fontSize="14" fontWeight="900" fill="#111" textAnchor="middle">IEC</text>
-                  </svg>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">Import Export Code</h4>
-                  <p className="text-[10px] text-slate-500 dark:text-zinc-400">Authorized to conduct international trade and global business operations through a valid IEC.</p>
+              {/* 3. 100% Transparent */}
+              <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-zinc-800 dark:bg-[#0d0d0d] flex flex-col justify-between">
+                <div className="absolute top-0 left-0 h-1 w-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-[#798321] transition-all duration-500 group-hover:w-full"></div>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 transition-transform duration-300 group-hover:scale-110">
+                      <Camera className="h-6 w-6" />
+                    </div>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-bold text-blue-600 dark:text-blue-400">
+                      <CheckCircle2 size={11} /> Photo Proof
+                    </span>
+                  </div>
+                  <h3 className="mt-4 text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                    100% Transparent
+                  </h3>
+                  <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 mt-0.5">
+                    Photo proof shared
+                  </p>
                 </div>
+                <p className="mt-3 text-[11px] text-slate-500 dark:text-zinc-400 leading-relaxed pt-2 border-t border-slate-100 dark:border-zinc-800/80">
+                  Time-stamped photographic and video evidence delivered directly to you for every sponsored cause.
+                </p>
               </div>
 
-              {/* HIPAA */}
-              <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-zinc-800 dark:bg-[#0d0d0d] flex flex-col items-center justify-center">
-                <div className="absolute top-0 left-0 h-1 w-0 bg-gradient-to-r from-transparent via-[#FFC107] to-transparent transition-all duration-500 group-hover:w-full"></div>
-                <div className="flex flex-col items-center text-center">
-                  <svg className="w-14 h-14 mb-3 drop-shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M25,85 L15,100 L35,92 L50,100 L65,92 L85,100 L75,85 Z" fill="#B8860B" />
-                    <circle cx="50" cy="45" r="40" fill="url(#gold)" stroke="#FFF" strokeWidth="2"/>
-                    <circle cx="50" cy="45" r="32" fill="none" stroke="#FFF" strokeWidth="1.5" strokeDasharray="4,4"/>
-                    <path d="M50,20 L68,26 L65,48 C63,60 50,68 50,68 C50,68 37,60 35,48 L32,26 Z" fill="#111" />
-                    <path d="M46,35 L54,35 L54,42 L61,42 L61,48 L54,48 L54,55 L46,55 L46,48 L39,48 L39,42 L46,42 Z" fill="url(#gold)" />
-                    <text x="50" y="75" fontFamily="Arial" fontSize="12" fontWeight="900" fill="#111" textAnchor="middle">HIPAA</text>
-                  </svg>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">HIPAA Compliance</h4>
-                  <p className="text-[10px] text-slate-500 dark:text-zinc-400">Expertise in data privacy, security, and regulatory compliance protocols.</p>
+              {/* 4. CSR Eligible */}
+              <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-zinc-800 dark:bg-[#0d0d0d] flex flex-col justify-between">
+                <div className="absolute top-0 left-0 h-1 w-0 bg-gradient-to-r from-purple-500 via-pink-500 to-[#FFC107] transition-all duration-500 group-hover:w-full"></div>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-500/10 text-purple-600 dark:bg-purple-500/15 dark:text-purple-400 transition-transform duration-300 group-hover:scale-110">
+                      <FileCheck className="h-6 w-6" />
+                    </div>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-purple-500/10 px-2.5 py-0.5 text-[10px] font-bold text-purple-600 dark:text-purple-400">
+                      <CheckCircle2 size={11} /> MCA Compliant
+                    </span>
+                  </div>
+                  <h3 className="mt-4 text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                    CSR Eligible
+                  </h3>
+                  <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mt-0.5">
+                    CSR-Form-1 Compliant
+                  </p>
                 </div>
+                <p className="mt-3 text-[11px] text-slate-500 dark:text-zinc-400 leading-relaxed pt-2 border-t border-slate-100 dark:border-zinc-800/80">
+                  Officially registered on MCA portal with valid CSR-Form-1 registration for corporate social responsibility funding.
+                </p>
               </div>
 
             </div>

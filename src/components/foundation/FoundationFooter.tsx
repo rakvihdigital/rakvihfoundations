@@ -75,10 +75,10 @@ export default function FoundationFooter() {
 
   // --- HIDE FOOTER ON ADMIN & VOLUNTEER DASHBOARDS ---
   if (
-    pathname.includes("/foundation/volunteer/dashboard") || 
+    pathname.includes("/foundation/volunteer/dashboard") ||
     pathname.includes("/adminfoundations")
   ) {
-    return null; 
+    return null;
   }
   // ---------------------------------------------------
 
@@ -311,7 +311,7 @@ export default function FoundationFooter() {
 
             {/* Right */}
             <p className="text-sm text-gray-600 dark:text-neutral-400">
-              Produced by{" "}
+              Powered by{" "}
               <a
                 href="https://rakvih.in/"
                 target="_blank"

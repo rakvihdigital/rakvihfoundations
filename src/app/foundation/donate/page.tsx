@@ -80,7 +80,18 @@ function DonateContent() {
     new Date().toISOString().split("T")[0]
   );
   const [donorName, setDonorName] = useState("");
+  const [donorEmail, setDonorEmail] = useState("");
+  const [donorPhone, setDonorPhone] = useState("");
   const [donorMessage, setDonorMessage] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const vName = localStorage.getItem("rakvih_volunteer_name");
+      const vEmail = localStorage.getItem("rakvih_volunteer_email");
+      if (vName && !donorName) setDonorName(vName);
+      if (vEmail && !donorEmail) setDonorEmail(vEmail);
+    }
+  }, []);
 
   // ── Optional Add-ons & Packaging ──
   const [wantsPhoto, setWantsPhoto] = useState<boolean>(
@@ -103,16 +114,42 @@ function DonateContent() {
     const raw = searchParams.get("items");
     return raw ? raw.split(",").filter(Boolean) : [];
   });
+  const [isPackagingMenuOpen, setIsPackagingMenuOpen] = useState<boolean>(() => {
+    return (
+      searchParams.get("photo") === "true" ||
+      searchParams.get("upload") === "true" ||
+      searchParams.get("video") === "true" ||
+      searchParams.get("text") === "true" ||
+      Boolean(searchParams.get("items"))
+    );
+  });
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownSearch, setDropdownSearch] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [addonPrices, setAddonPrices] = useState(DEFAULT_ADDONS);
 
+  const [subItemAddons, setSubItemAddons] = useState<any[]>([]);
+  const [selectedSubAddons, setSelectedSubAddons] = useState<string[]>([]);
+
   // Submission & Post-Payment Pop-up States
   const [submitting, setSubmitting] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [completedDonationData, setCompletedDonationData] = useState<any>(null);
+
+  // Short Floating Popup & Photo Validation States
+  const [popupMessage, setPopupMessage] = useState<string>("");
+  const [photoError, setPhotoError] = useState<boolean>(false);
+  const [showSamplePhotoModal, setShowSamplePhotoModal] = useState<boolean>(false);
+  const popupTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const showPopup = (msg: string) => {
+    if (popupTimeoutRef.current) clearTimeout(popupTimeoutRef.current);
+    setPopupMessage(msg);
+    popupTimeoutRef.current = setTimeout(() => {
+      setPopupMessage("");
+    }, 4500);
+  };
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -130,18 +167,35 @@ function DonateContent() {
       try {
         setLoading(true);
 
-        const [causeRes, donationsRes, categoryRes] = await Promise.all([
+        const [causeRes, donationsRes, categoryRes, addonsRes] = await Promise.all([
           supabase.from("cause_items").select("*").eq("id", causeId).single(),
           supabase
             .from("donations")
             .select("*")
             .eq("cause_id", causeId)
             .order("created_at", { ascending: false }),
-          supabase.from("cause_categories").select("description"),
+          supabase.from("cause_categories").select("id, title, description"),
+          supabase
+            .from("cause_item_addons")
+            .select("id, title, cost, is_active")
+            .eq("cause_id", causeId)
+            .eq("is_active", true)
+            .order("created_at", { ascending: true }),
         ]);
 
         if (causeRes.data) setCause(causeRes.data);
         if (donationsRes.data) setDonations(donationsRes.data);
+
+        // Sub-item add-ons from dedicated table
+        let subItemSpecificAddons: any[] = [];
+        if (!addonsRes.error && addonsRes.data && addonsRes.data.length > 0) {
+          subItemSpecificAddons = addonsRes.data.map((a: any) => ({
+            id: String(a.id),
+            title: a.title,
+            cost: Number(a.cost) || 0,
+            is_active: a.is_active,
+          }));
+        }
 
         // Sync admin-configured member limits and addon costs
         if (categoryRes.data) {
@@ -158,6 +212,47 @@ function DonateContent() {
             }
           });
 
+          // Check if the cause belongs to a category that has category-specific or sub-item specific add-ons
+          let categorySpecificAddons: any[] = [];
+          if (causeRes.data?.category_id) {
+            const currentCat = categoryRes.data.find(
+              (c: any) => String(c.id) === String(causeRes.data.category_id)
+            );
+            if (currentCat?.description) {
+              try {
+                const parsedCat = JSON.parse(currentCat.description);
+                if (Array.isArray(parsedCat.addOns)) {
+                  categorySpecificAddons = parsedCat.addOns;
+                }
+                if (
+                  subItemSpecificAddons.length === 0 &&
+                  parsedCat.subItemAddons &&
+                  Array.isArray(parsedCat.subItemAddons[String(causeId)])
+                ) {
+                  subItemSpecificAddons = parsedCat.subItemAddons[String(causeId)];
+                }
+              } catch {
+                // ignore
+              }
+            }
+          }
+
+          if (subItemSpecificAddons.length === 0) {
+            for (const c of (categoryRes.data || [])) {
+              try {
+                const parsed = JSON.parse(c.description || "");
+                if (parsed.subItemAddons && Array.isArray(parsed.subItemAddons[String(causeId)])) {
+                  subItemSpecificAddons = parsed.subItemAddons[String(causeId)];
+                  break;
+                }
+              } catch {}
+            }
+          }
+
+          setSubItemAddons(
+            subItemSpecificAddons.length > 0 ? subItemSpecificAddons : categorySpecificAddons
+          );
+
           if (configRow?.description) {
             const parsed = JSON.parse(configRow.description);
             const adminMin = parsed.minPersons || DEFAULT_ADDONS.minPersons;
@@ -173,13 +268,19 @@ function DonateContent() {
               setPersonCount(Math.max(adminMin, Math.min(adminMax, Number(urlQty))));
             }
 
+            const baseExtras = parsed.extras || DEFAULT_ADDONS.extras;
+            const mergedExtras = [
+              ...categorySpecificAddons,
+              ...baseExtras.filter((b: any) => !categorySpecificAddons.some((c: any) => c.id === b.id)),
+            ];
+
             setAddonPrices({
               minPersons: adminMin,
               maxPersons: adminMax,
               photoCost: parsed.photoCost ?? parsed.mediaCost ?? DEFAULT_ADDONS.photoCost,
               videoCost: parsed.videoCost ?? DEFAULT_ADDONS.videoCost,
               textCost: parsed.textCost ?? DEFAULT_ADDONS.textCost,
-              extras: parsed.extras || DEFAULT_ADDONS.extras,
+              extras: mergedExtras,
             });
           }
         }
@@ -203,8 +304,18 @@ function DonateContent() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const toggleSubAddon = (addonId: string) => {
+    setSelectedSubAddons((prev) =>
+      prev.includes(addonId) ? prev.filter((id) => id !== addonId) : [...prev, addonId]
+    );
+  };
+
   // Multiplier Calculations
   const baseCostPerPerson = Number(cause?.cost) || 100;
+  const subAddonsUnitCost = selectedSubAddons.reduce((sum, id) => {
+    const item = subItemAddons.find((a) => a.id === id);
+    return sum + (item?.cost || 0);
+  }, 0);
   const photoUnitCost = wantsPhoto ? addonPrices.photoCost : 0;
   const textUnitCost = wantsText ? addonPrices.textCost : 0;
   const extrasUnitCost = selectedItems.reduce((sum, itemId) => {
@@ -212,10 +323,17 @@ function DonateContent() {
     return sum + (item?.cost || 0);
   }, 0);
 
-  const perMemberSubtotal = baseCostPerPerson + photoUnitCost + textUnitCost + extrasUnitCost;
+  const perMemberSubtotal =
+    baseCostPerPerson + subAddonsUnitCost + photoUnitCost + textUnitCost + extrasUnitCost;
   const membersTotalCost = perMemberSubtotal * personCount;
   const videoFlatCost = wantsVideo ? addonPrices.videoCost : 0;
   const finalCalculatedTotal = membersTotalCost + videoFlatCost;
+
+  const activeOptionsCount =
+    (wantsPhoto ? 1 : 0) +
+    (wantsVideo ? 1 : 0) +
+    (wantsText ? 1 : 0) +
+    selectedItems.length;
 
   const toggleItemSelection = (itemId: string) => {
     setSelectedItems((prev) =>
@@ -228,12 +346,46 @@ function DonateContent() {
       const file = e.target.files[0];
       setPhotoFile(file);
       setPhotoPreview(URL.createObjectURL(file));
+      setPhotoError(false);
+      setPopupMessage("");
     }
   };
 
   const handlePaymentCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!donorName.trim() || finalCalculatedTotal <= 0) return;
+
+    if (!donorName.trim()) {
+      showPopup("Please enter your full name.");
+      return;
+    }
+
+    if (!donorEmail.trim() || !/^\S+@\S+\.\S+$/.test(donorEmail.trim())) {
+      showPopup("Please enter a valid email address.");
+      return;
+    }
+
+    if (!donorPhone.trim() || donorPhone.trim().length < 7) {
+      showPopup("Please enter a valid contact phone number.");
+      return;
+    }
+
+    if (wantsPhoto && !photoFile) {
+      setIsPackagingMenuOpen(true);
+      setPhotoError(true);
+      showPopup("Please upload a photo for packing, or uncheck the option.");
+      return;
+    }
+
+    if (wantsText && !packingLabelName.trim()) {
+      setIsPackagingMenuOpen(true);
+      showPopup("Please enter a dedication label name, or uncheck the option.");
+      return;
+    }
+
+    if (finalCalculatedTotal <= 0) {
+      showPopup("Donation amount must be greater than zero.");
+      return;
+    }
 
     try {
       setSubmitting(true);
@@ -292,6 +444,13 @@ function DonateContent() {
         order_id: orderData.id,
         handler: async function (response: any) {
           try {
+            const selectedSubAddonNames = selectedSubAddons
+              .map((id) => {
+                const a = subItemAddons.find((item) => item.id === id);
+                return a ? `${a.title} (+₹${a.cost})` : "";
+              })
+              .filter(Boolean);
+
             const selectedItemNames = selectedItems
               .map((id) => addonPrices.extras.find((a) => a.id === id)?.title)
               .filter(Boolean) as string[];
@@ -299,6 +458,7 @@ function DonateContent() {
             const packingSummary = [
               donorMessage ? `"${donorMessage}"` : "",
               `Members: ${personCount}`,
+              selectedSubAddonNames.length > 0 ? `Sub-Item Add-ons: ${selectedSubAddonNames.join(", ")}` : "",
               uploadedPhotoUrl ? `Photo on Packing: ${uploadedPhotoUrl}` : "",
               wantsVideo ? `Celebration Video Requested: Yes (Flat ₹${videoFlatCost})` : "",
               wantsText ? `Label: [${packingLabelName}] - ${packingLabelDesc}` : "",
@@ -311,11 +471,14 @@ function DonateContent() {
               {
                 cause_id: parseInt(causeId as string),
                 donor_name: donorName.trim(),
+                email: donorEmail.trim(),
+                phone: donorPhone.trim(),
                 donor_image: uploadedPhotoUrl || "",
                 amount: finalCalculatedTotal,
                 message: packingSummary,
                 donation_date: donationDate,
                 dedication_type: dedicationType,
+                is_donated: true,
               },
             ]);
 
@@ -331,6 +494,8 @@ function DonateContent() {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 donorName: donorName.trim(),
+                donorEmail: donorEmail.trim(),
+                donorPhone: donorPhone.trim(),
                 amount: finalCalculatedTotal,
                 causeTitle: cause?.title || cause?.name || "Initiative Sponsorship",
                 personCount,
@@ -340,7 +505,7 @@ function DonateContent() {
                 wantsVideo,
                 packingLabelName,
                 packingLabelDesc,
-                selectedItemNames,
+                selectedItemNames: [...selectedSubAddonNames, ...selectedItemNames],
                 donorMessage: donorMessage.trim(),
               }),
             }).catch((emailErr) => {
@@ -349,15 +514,20 @@ function DonateContent() {
 
             setCompletedDonationData({
               donorName: donorName.trim(),
+              donorEmail: donorEmail.trim(),
+              donorPhone: donorPhone.trim(),
               amount: finalCalculatedTotal,
               personCount,
               wantsVideo,
               donationDate,
+              selectedSubAddons: selectedSubAddonNames,
             });
 
             setShowSuccessPopup(true);
 
             setDonorName("");
+            setDonorEmail("");
+            setDonorPhone("");
             setDonorMessage("");
             setPackingLabelName("");
             setPackingLabelDesc("");
@@ -379,7 +549,9 @@ function DonateContent() {
           }
         },
         prefill: {
-          name: donorName,
+          name: donorName.trim(),
+          email: donorEmail.trim(),
+          contact: donorPhone.trim(),
         },
         theme: {
           color: "#798321",
@@ -411,17 +583,22 @@ function DonateContent() {
     cause?.image_url ||
     "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=1000&auto=format&fit=crop";
 
-  const dropdownItems = addonPrices.extras.filter((item) =>
-    item.title.toLowerCase().includes(dropdownSearch.toLowerCase())
-  );
+  const dropdownItems = addonPrices.extras
+    .filter(
+      (item) =>
+        !subItemAddons.some(
+          (sub) => sub.id === item.id || sub.title.toLowerCase() === item.title.toLowerCase()
+        )
+    )
+    .filter((item) => item.title.toLowerCase().includes(dropdownSearch.toLowerCase()));
 
   return (
     <div
-      className={`min-h-screen bg-slate-50 dark:bg-black pb-24 transition-colors duration-500 ${display.variable}`}
+      className={`min-h-screen overflow-x-clip bg-slate-50 dark:bg-black pb-16 sm:pb-20 transition-colors duration-500 ${display.variable}`}
       style={{ fontFamily: "var(--font-display)" }}
     >
       {/* Top Banner */}
-      <section className="relative overflow-hidden pt-20 pb-12 bg-gradient-to-b from-[#24310F] via-[#2F3E14] to-[#F8FAF0] text-white dark:from-black dark:via-black dark:to-black">
+      <section className="relative overflow-hidden pt-10 pb-6 sm:pt-12 sm:pb-8 bg-gradient-to-b from-[#24310F] via-[#2F3E14] to-[#F8FAF0] text-white dark:from-black dark:via-black dark:to-black">
         <div className="relative mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
           <div className="flex flex-col items-center gap-2 mb-3">
             <Link
@@ -445,7 +622,7 @@ function DonateContent() {
       </section>
 
       {/* Main Grid: items-start keeps both columns aligned; Left is sticky to eliminate empty gap */}
-      <main className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-4 pt-5 sm:pt-6 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* ── Left Column: 5 Cols Width + Sticky so it follows the form with NO dead space ── */}
@@ -524,13 +701,18 @@ function DonateContent() {
           <div className="lg:col-span-7">
             <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-2xl dark:border-neutral-800 dark:bg-[#0a0a0a]">
               <form onSubmit={handlePaymentCheckout} className="space-y-5">
-                {/* ── 1. CORE ESSENTIALS: Member Counter ── */}
-                <div className="rounded-2xl bg-slate-50 dark:bg-[#141414] p-4 border border-slate-200 dark:border-neutral-800 space-y-2">
+                {/* ── 1. CORE ESSENTIALS: Member Counter & Baseline Cost ── */}
+                <div className="rounded-2xl bg-slate-50 dark:bg-[#141414] p-4 border border-slate-200 dark:border-neutral-800 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-800 dark:text-white">
-                      Supported Members Count
-                    </span>
-                    <span className="text-xs font-bold text-[#798321] dark:text-[#FFC107]">
+                    <div>
+                      <span className="text-xs font-bold text-slate-800 dark:text-white block">
+                        Supported Members Count
+                      </span>
+                      <span className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400">
+                        Baseline Cost: <strong className="text-[#798321] dark:text-[#FFC107]">₹{baseCostPerPerson}</strong> / member
+                      </span>
+                    </div>
+                    <span className="text-xs font-bold text-[#798321] dark:text-[#FFC107] bg-amber-50 dark:bg-black/50 px-2.5 py-1 rounded-xl border border-amber-200/60 dark:border-neutral-700">
                       {personCount} Member(s)
                     </span>
                   </div>
@@ -575,7 +757,67 @@ function DonateContent() {
                   </div>
                 </div>
 
-                {/* ── 2. CORE ESSENTIALS: Dedication & Date (Side-by-side) ── */}
+                {/* ── 2. SUB-ITEM SPECIFIC ADD-ONS (Open, NO dropdown) ── */}
+                {subItemAddons.length > 0 && (
+                  <div className="rounded-2xl border border-amber-200/90 bg-amber-50/50 p-4 sm:p-5 dark:border-neutral-800 dark:bg-[#121212] space-y-3 shadow-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-amber-200/70 dark:border-neutral-800 pb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Gift size={16} className="text-[#798321] dark:text-[#FFC107]" />
+                          <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                            Optional Add-ons for {cause?.title || cause?.name}
+                          </h3>
+                        </div>
+                        <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
+                          Directly choose multiple add-on items to accompany each {cause?.title || cause?.name} sponsorship.
+                        </p>
+                      </div>
+                      {selectedSubAddons.length > 0 && (
+                        <span className="self-start sm:self-auto rounded-full bg-[#798321]/15 px-3 py-1 text-[11px] font-bold text-[#798321] dark:bg-[#FFC107]/15 dark:text-[#FFC107] border border-[#798321]/30 dark:border-[#FFC107]/30">
+                          {selectedSubAddons.length} selected (+₹{subAddonsUnitCost}/member)
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Open multi-select cards (No dropdown) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                      {subItemAddons.map((addon) => {
+                        const isChecked = selectedSubAddons.includes(addon.id);
+                        return (
+                          <div
+                            key={addon.id}
+                            onClick={() => toggleSubAddon(addon.id)}
+                            className={`group flex cursor-pointer items-center justify-between p-3 rounded-xl border transition-all select-none ${
+                              isChecked
+                                ? "border-[#798321] bg-white shadow-md dark:border-[#FFC107] dark:bg-neutral-900 ring-1 ring-[#798321] dark:ring-[#FFC107]"
+                                : "border-slate-200/80 bg-white/80 hover:border-slate-300 hover:bg-white dark:border-neutral-800 dark:bg-[#0c0c0c] dark:hover:border-neutral-700"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                              <div
+                                className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
+                                  isChecked
+                                    ? "border-[#798321] bg-[#798321] text-white dark:border-[#FFC107] dark:bg-[#FFC107] dark:text-black"
+                                    : "border-slate-300 group-hover:border-slate-400 dark:border-neutral-600"
+                                }`}
+                              >
+                                {isChecked && <Check size={11} strokeWidth={3} />}
+                              </div>
+                              <span className="text-xs font-semibold text-slate-800 dark:text-neutral-200 truncate">
+                                {addon.title}
+                              </span>
+                            </div>
+                            <span className="text-xs font-bold text-[#798321] dark:text-[#FFC107] shrink-0">
+                              + ₹{addon.cost}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── 3. CORE ESSENTIALS: Dedication & Date (Side-by-side) ── */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
@@ -595,7 +837,7 @@ function DonateContent() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-1">
                       Execution Date
                     </label>
                     <input
@@ -608,10 +850,10 @@ function DonateContent() {
                   </div>
                 </div>
 
-                {/* Name & Note */}
+                {/* Name, Email, Phone & Note */}
                 <div className="space-y-3.5">
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-1">
                       Your Full Name *
                     </label>
                     <input
@@ -624,8 +866,38 @@ function DonateContent() {
                     />
                   </div>
 
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-1">
+                        Email Address *
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        placeholder="e.g. rahul@example.com"
+                        value={donorEmail}
+                        onChange={(e) => setDonorEmail(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-800 dark:border-neutral-700 dark:bg-[#141414] dark:text-white focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-1">
+                        Phone Number *
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="e.g. +91 98765 43210"
+                        value={donorPhone}
+                        onChange={(e) => setDonorPhone(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-800 dark:border-neutral-700 dark:bg-[#141414] dark:text-white focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-1">
                       Encouraging Note / Blessing (Optional)
                     </label>
                     <textarea
@@ -638,257 +910,346 @@ function DonateContent() {
                   </div>
                 </div>
 
-                {/* ── 3. OPTIONAL PACKAGING & EXTRAS ── */}
-                <div className="pt-2 border-t border-slate-200 dark:border-neutral-800 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                      <Gift size={14} className="text-[#798321] dark:text-[#FFC107]" />
-                      Optional Packaging &amp; Extras
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      All Optional
-                    </span>
-                  </div>
-
-                  {/* Optional A: Photo Upload for Packing (Per member) */}
-                  <div
-                    className={`rounded-2xl border transition-colors ${
-                      wantsPhoto
-                        ? "border-[#798321] bg-[#798321]/5 dark:border-[#FFC107] dark:bg-[#FFC107]/5"
-                        : "border-slate-200 bg-white dark:border-neutral-800 dark:bg-[#121212]"
-                    }`}
-                  >
-                    <div
-                      onClick={() => setWantsPhoto(!wantsPhoto)}
-                      className="flex cursor-pointer items-center justify-between p-3.5"
+                {/* ── 3. OPTIONAL PACKAGING & EXTRAS (Single Dropdown Menu) ── */}
+                <div className="pt-2 border-t border-slate-200 dark:border-neutral-800">
+                  <div className="rounded-2xl border border-slate-200 bg-white dark:border-neutral-800 dark:bg-[#121212] overflow-hidden transition-all shadow-sm">
+                    <button
+                      type="button"
+                      onClick={() => setIsPackagingMenuOpen(!isPackagingMenuOpen)}
+                      className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-50 dark:hover:bg-neutral-900/50 transition-colors"
                     >
-                      <div className="flex items-center gap-2.5">
-                        <div
-                          className={`flex h-4 w-4 items-center justify-center rounded border ${
-                            wantsPhoto
-                              ? "border-[#798321] bg-[#798321] text-white dark:border-[#FFC107] dark:bg-[#FFC107] dark:text-black"
-                              : "border-slate-300 dark:border-neutral-700"
-                          }`}
-                        >
-                          {wantsPhoto && <Check size={12} />}
-                        </div>
-                        <span className="text-xs font-bold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
-                          <ImageIcon size={14} className="text-[#798321] dark:text-[#FFC107]" />
-                          Attach Photo on Packing
-                        </span>
-                      </div>
-                      <span className="text-xs font-bold text-[#798321] dark:text-[#FFC107]">
-                        + ₹{addonPrices.photoCost}/member
-                      </span>
-                    </div>
-
-                    {wantsPhoto && (
-                      <div className="border-t border-slate-200/50 px-3.5 pb-3.5 pt-2 dark:border-neutral-800">
-                        <label className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-white py-3.5 hover:bg-slate-50 dark:border-neutral-700 dark:bg-black cursor-pointer transition">
-                          <Upload size={18} className="text-slate-400 mb-1" />
-                          <span className="text-xs font-medium text-slate-600 dark:text-neutral-300">
-                            {photoFile ? photoFile.name : "Choose an image file (JPG, PNG)"}
-                          </span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handlePhotoSelect}
-                            className="hidden"
-                          />
-                        </label>
-                        {photoPreview && (
-                          <div className="mt-2 flex items-center gap-2">
-                            <img
-                              src={photoPreview}
-                              alt="Preview"
-                              className="h-10 w-10 rounded-lg object-cover border border-slate-200"
-                            />
-                            <span className="text-[11px] text-emerald-600 font-semibold">
-                              Photo ready to print
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Optional B: Request Celebration Video */}
-                  <div
-                    className={`rounded-2xl border transition-colors ${
-                      wantsVideo
-                        ? "border-[#798321] bg-[#798321]/5 dark:border-[#FFC107] dark:bg-[#FFC107]/5"
-                        : "border-slate-200 bg-white dark:border-neutral-800 dark:bg-[#121212]"
-                    }`}
-                  >
-                    <div
-                      onClick={() => setWantsVideo(!wantsVideo)}
-                      className="flex cursor-pointer items-start justify-between p-3.5"
-                    >
-                      <div className="flex items-start gap-2.5">
-                        <div
-                          className={`flex h-4 w-4 shrink-0 mt-0.5 items-center justify-center rounded border ${
-                            wantsVideo
-                              ? "border-[#798321] bg-[#798321] text-white dark:border-[#FFC107] dark:bg-[#FFC107] dark:text-black"
-                              : "border-slate-300 dark:border-neutral-700"
-                          }`}
-                        >
-                          {wantsVideo && <Check size={12} />}
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-[#798321] dark:bg-[#FFC107]/15 dark:text-[#FFC107]">
+                          <Gift size={20} />
                         </div>
                         <div>
-                          <span className="text-xs font-bold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
-                            <Video size={14} className="text-[#798321] dark:text-[#FFC107]" />
-                            Request Celebration Video
-                          </span>
-                          <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5 leading-relaxed">
-                            Our team will record a video clip of your sponsored celebration and share it directly with you.
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-900 dark:text-white">
+                              Optional Packaging &amp; Extras
+                            </span>
+                            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                              (Optional)
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
+                            {activeOptionsCount === 0
+                              ? "Click to choose custom photo label, celebration video, or add-ons"
+                              : `${activeOptionsCount} optional customizer(s) selected`}
                           </p>
                         </div>
                       </div>
-                      <span className="text-xs font-bold text-[#798321] dark:text-[#FFC107] shrink-0 ml-2 whitespace-nowrap">
-                        + ₹{addonPrices.videoCost} (One-time)
-                      </span>
-                    </div>
-                  </div>
 
-                  {/* Optional C: Custom Dedication Label on Box */}
-                  <div
-                    className={`rounded-2xl border transition-colors ${
-                      wantsText
-                        ? "border-[#798321] bg-[#798321]/5 dark:border-[#FFC107] dark:bg-[#FFC107]/5"
-                        : "border-slate-200 bg-white dark:border-neutral-800 dark:bg-[#121212]"
-                    }`}
-                  >
-                    <div
-                      onClick={() => setWantsText(!wantsText)}
-                      className="flex cursor-pointer items-center justify-between p-3.5"
-                    >
                       <div className="flex items-center gap-2.5">
-                        <div
-                          className={`flex h-4 w-4 items-center justify-center rounded border ${
-                            wantsText
-                              ? "border-[#798321] bg-[#798321] text-white dark:border-[#FFC107] dark:bg-[#FFC107] dark:text-black"
-                              : "border-slate-300 dark:border-neutral-700"
-                          }`}
-                        >
-                          {wantsText && <Check size={12} />}
+                        {activeOptionsCount > 0 ? (
+                          <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            {activeOptionsCount} active
+                          </span>
+                        ) : (
+                          <span className="text-[11px] font-semibold text-slate-400 hidden sm:inline">
+                            View Options
+                          </span>
+                        )}
+                        <div className={`p-1 text-slate-400 transition-transform duration-300 ${isPackagingMenuOpen ? "rotate-180 text-[#798321] dark:text-[#FFC107]" : ""}`}>
+                          <ChevronDown size={18} />
                         </div>
-                        <span className="text-xs font-bold text-slate-800 dark:text-neutral-200">
-                          Custom Dedication Label on Box
-                        </span>
                       </div>
-                      <span className="text-xs font-bold text-[#798321] dark:text-[#FFC107]">
-                        + ₹{addonPrices.textCost}/member
-                      </span>
-                    </div>
-
-                    {wantsText && (
-                      <div className="border-t border-slate-200/50 px-3.5 pb-3.5 pt-2 dark:border-neutral-800 space-y-2">
-                        <input
-                          type="text"
-                          placeholder="Name to print (e.g. S. Ramesh & Family)"
-                          value={packingLabelName}
-                          onChange={(e) => setPackingLabelName(e.target.value)}
-                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 dark:border-neutral-700 dark:bg-black dark:text-white focus:outline-none"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Short wish (e.g. With love from Grandchildren)"
-                          value={packingLabelDesc}
-                          onChange={(e) => setPackingLabelDesc(e.target.value)}
-                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 dark:border-neutral-700 dark:bg-black dark:text-white focus:outline-none"
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Optional D: Special Extras Dropdown */}
-                  <div className="relative" ref={dropdownRef}>
-                    <div
-                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="flex cursor-pointer items-center justify-between rounded-2xl border border-slate-200 bg-white p-3.5 dark:border-neutral-800 dark:bg-[#121212]"
-                    >
-                      <div>
-                        <p className="text-xs font-bold text-slate-800 dark:text-neutral-200">
-                          Include Special Extras (Candles, Gifts, Flowers)
-                        </p>
-                        <p className="text-[10px] text-slate-400">
-                          {selectedItems.length === 0
-                            ? "None selected (Click to choose)"
-                            : `${selectedItems.length} extra(s) chosen`}
-                        </p>
-                      </div>
-                      <ChevronDown
-                        size={16}
-                        className={`text-slate-400 transition-transform ${
-                          isDropdownOpen ? "rotate-180" : ""
-                        }`}
-                      />
-                    </div>
+                    </button>
 
                     <AnimatePresence>
-                      {isDropdownOpen && (
+                      {isPackagingMenuOpen && (
                         <motion.div
-                          initial={{ opacity: 0, y: -6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -6 }}
-                          className="absolute left-0 right-0 top-[calc(100%+6px)] z-20 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-[#141414]"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.25 }}
+                          className="border-t border-slate-200 dark:border-neutral-800 p-4 space-y-3.5 bg-slate-50/60 dark:bg-black/40"
                         >
-                          <div className="border-b border-slate-100 p-2 dark:border-neutral-800">
-                            <div className="relative">
-                              <Search
-                                size={14}
-                                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                              />
-                              <input
-                                type="text"
-                                autoFocus
-                                placeholder="Search extras..."
-                                value={dropdownSearch}
-                                onChange={(e) => setDropdownSearch(e.target.value)}
-                                className="w-full rounded-xl bg-slate-50 py-1.5 pl-8 pr-3 text-xs text-slate-800 focus:outline-none dark:bg-black dark:text-white"
-                              />
+                          {/* Option 1: Attach Photo on Packing */}
+                          <div
+                            className={`rounded-2xl border transition-all ${
+                              photoError && !photoFile
+                                ? "border-rose-500 bg-rose-50/25 dark:border-rose-500/80 dark:bg-rose-950/20 ring-2 ring-rose-500/40"
+                                : wantsPhoto
+                                ? "border-[#798321] bg-[#798321]/5 dark:border-[#FFC107] dark:bg-[#FFC107]/5"
+                                : "border-slate-200 bg-white dark:border-neutral-800 dark:bg-[#121212]"
+                            }`}
+                          >
+                            <div
+                              onClick={() => {
+                                const next = !wantsPhoto;
+                                setWantsPhoto(next);
+                                if (!next) {
+                                  setPhotoError(false);
+                                  setPopupMessage("");
+                                }
+                              }}
+                              className="flex cursor-pointer items-start justify-between p-3.5 gap-3"
+                            >
+                              <div className="flex items-start gap-2.5">
+                                <div
+                                  className={`flex h-4 w-4 shrink-0 mt-0.5 items-center justify-center rounded border ${
+                                    wantsPhoto
+                                      ? "border-[#798321] bg-[#798321] text-white dark:border-[#FFC107] dark:bg-[#FFC107] dark:text-black"
+                                      : "border-slate-300 dark:border-neutral-700"
+                                  }`}
+                                >
+                                  {wantsPhoto && <Check size={12} />}
+                                </div>
+                                <div>
+                                  <span className="text-xs font-bold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
+                                    <ImageIcon size={14} className="text-[#798321] dark:text-[#FFC107]" />
+                                    Attach Photo on Packing
+                                  </span>
+                                  <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5 leading-relaxed">
+                                    We print your uploaded photo on a custom sticker affixed to every food or gift box distributed to beneficiaries (e.g. Birthday, Memorial, or Family tribute).
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Small sample image on top of price - Clickable for preview */}
+                              <div className="flex flex-col items-end shrink-0 gap-1">
+                                <div 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowSamplePhotoModal(true);
+                                  }}
+                                  className="relative h-12 w-12 sm:h-14 sm:w-14 overflow-hidden rounded-xl border border-slate-200/80 shadow-xs dark:border-neutral-700 bg-white cursor-pointer group/preview hover:scale-105 hover:ring-2 hover:ring-[#798321] dark:hover:ring-[#FFC107] transition-all"
+                                  title="Click to view sample photo on packaging"
+                                >
+                                  <Image
+                                    src="/images/packing-photo-sample.jpg"
+                                    alt="Sample Photo on Packing"
+                                    fill
+                                    sizes="56px"
+                                    className="object-cover"
+                                  />
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/preview:opacity-100 flex items-center justify-center text-white transition-opacity">
+                                    <Search size={14} />
+                                  </div>
+                                </div>
+                                <span className="text-xs font-bold text-[#798321] dark:text-[#FFC107] whitespace-nowrap">
+                                  + ₹{addonPrices.photoCost}/member
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                          <div className="max-h-48 overflow-y-auto p-1.5">
-                            {dropdownItems.length === 0 ? (
-                              <p className="p-3 text-center text-xs text-slate-400">
-                                No items match your search.
-                              </p>
-                            ) : (
-                              dropdownItems.map((item) => {
-                                const isSelected = selectedItems.includes(item.id);
-                                return (
-                                  <div
-                                    key={item.id}
-                                    onClick={() => toggleItemSelection(item.id)}
-                                    className={`flex cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-xs transition-colors ${
-                                      isSelected
-                                        ? "bg-[#798321]/10 dark:bg-[#FFC107]/10"
-                                        : "hover:bg-slate-50 dark:hover:bg-neutral-800"
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <div
-                                        className={`flex h-3.5 w-3.5 items-center justify-center rounded border ${
-                                          isSelected
-                                            ? "border-[#798321] bg-[#798321] text-white dark:border-[#FFC107] dark:bg-[#FFC107] dark:text-black"
-                                            : "border-slate-300 dark:border-neutral-600"
-                                        }`}
-                                      >
-                                        {isSelected && <Check size={10} />}
-                                      </div>
-                                      <span className="font-medium text-slate-700 dark:text-neutral-200">
-                                        {item.title}
-                                      </span>
-                                    </div>
-                                    <span className="font-bold text-[#798321] dark:text-[#FFC107]">
-                                      + ₹{item.cost}/member
+
+                            {wantsPhoto && (
+                              <div className="border-t border-slate-200/50 px-3.5 pb-3.5 pt-2.5 dark:border-neutral-800 space-y-2.5">
+                                <div className="flex items-center gap-2 rounded-xl bg-amber-500/10 px-3 py-2 text-[11px] font-medium text-amber-900 dark:text-amber-200">
+                                  <Sparkles size={13} className="text-[#FFC107] shrink-0" />
+                                  <span>Upload any photo you want printed on the meal/package label (e.g., photo of birthday person, couple, or family member).</span>
+                                </div>
+                                
+                                <label className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed py-3 cursor-pointer transition ${
+                                  photoError && !photoFile
+                                    ? "border-rose-400 bg-rose-50/60 dark:border-rose-500/70 dark:bg-rose-950/20"
+                                    : "border-slate-300 bg-white hover:bg-slate-50 dark:border-neutral-700 dark:bg-black"
+                                }`}>
+                                  <Upload size={16} className={photoError && !photoFile ? "text-rose-500 mb-1" : "text-slate-400 mb-1"} />
+                                  <span className={`text-xs font-medium ${photoError && !photoFile ? "text-rose-600 dark:text-rose-400 font-semibold" : "text-slate-600 dark:text-neutral-300"}`}>
+                                    {photoFile ? photoFile.name : "Choose an image file (JPG, PNG)"}
+                                  </span>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handlePhotoSelect}
+                                    className="hidden"
+                                  />
+                                </label>
+
+                                {/* Added under image box itself */}
+                                {!photoFile ? (
+                                  <div className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] transition ${
+                                    photoError
+                                      ? "bg-rose-50 border border-rose-200 text-rose-700 dark:bg-rose-950/40 dark:border-rose-900/60 dark:text-rose-300 font-bold"
+                                      : "bg-slate-100 dark:bg-neutral-900 text-slate-500 dark:text-neutral-400"
+                                  }`}>
+                                    <AlertCircle size={13} className={photoError ? "text-rose-500 shrink-0" : "text-slate-400 shrink-0"} />
+                                    <span>
+                                      {photoError
+                                        ? "Photo required: please upload a photo above or uncheck this option."
+                                        : "Please upload a photo, or uncheck the option to proceed without photo."}
                                     </span>
                                   </div>
-                                );
-                              })
+                                ) : (
+                                  <div className="flex items-center gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/50 p-2 dark:border-emerald-900/50 dark:bg-emerald-950/20">
+                                    <img
+                                      src={photoPreview || ""}
+                                      alt="Preview"
+                                      className="h-11 w-11 rounded-lg object-cover border border-emerald-300 dark:border-emerald-700"
+                                    />
+                                    <div>
+                                      <span className="text-[11px] text-emerald-700 dark:text-emerald-300 font-semibold block">
+                                        ✓ Photo ready for sticker print
+                                      </span>
+                                      <span className="text-[10px] text-slate-500 dark:text-neutral-400">
+                                        Will be affixed to all {personCount} packages
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </div>
+
+                          {/* Option 2: Request Celebration Video */}
+                          <div
+                            className={`rounded-2xl border transition-colors ${
+                              wantsVideo
+                                ? "border-[#798321] bg-[#798321]/5 dark:border-[#FFC107] dark:bg-[#FFC107]/5"
+                                : "border-slate-200 bg-white dark:border-neutral-800 dark:bg-[#121212]"
+                            }`}
+                          >
+                            <div
+                              onClick={() => setWantsVideo(!wantsVideo)}
+                              className="flex cursor-pointer items-start justify-between p-3.5"
+                            >
+                              <div className="flex items-start gap-2.5">
+                                <div
+                                  className={`flex h-4 w-4 shrink-0 mt-0.5 items-center justify-center rounded border ${
+                                    wantsVideo
+                                      ? "border-[#798321] bg-[#798321] text-white dark:border-[#FFC107] dark:bg-[#FFC107] dark:text-black"
+                                      : "border-slate-300 dark:border-neutral-700"
+                                  }`}
+                                >
+                                  {wantsVideo && <Check size={12} />}
+                                </div>
+                                <div>
+                                  <span className="text-xs font-bold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
+                                    <Video size={14} className="text-[#798321] dark:text-[#FFC107]" />
+                                    Request Celebration Video
+                                  </span>
+                                  <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5 leading-relaxed">
+                                    Our team will record a video clip of your sponsored celebration and share it directly with you.
+                                  </p>
+                                </div>
+                              </div>
+                              <span className="text-xs font-bold text-[#798321] dark:text-[#FFC107] shrink-0 ml-2 whitespace-nowrap">
+                                + ₹{addonPrices.videoCost} (One-time)
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Option 3: Custom Dedication Label on Box */}
+                          <div
+                            className={`rounded-2xl border transition-colors ${
+                              wantsText
+                                ? "border-[#798321] bg-[#798321]/5 dark:border-[#FFC107] dark:bg-[#FFC107]/5"
+                                : "border-slate-200 bg-white dark:border-neutral-800 dark:bg-[#121212]"
+                            }`}
+                          >
+                            <div
+                              onClick={() => setWantsText(!wantsText)}
+                              className="flex cursor-pointer items-start justify-between p-3.5"
+                            >
+                              <div className="flex items-start gap-2.5">
+                                <div
+                                  className={`flex h-4 w-4 shrink-0 mt-0.5 items-center justify-center rounded border ${
+                                    wantsText
+                                      ? "border-[#798321] bg-[#798321] text-white dark:border-[#FFC107] dark:bg-[#FFC107] dark:text-black"
+                                      : "border-slate-300 dark:border-neutral-700"
+                                  }`}
+                                >
+                                  {wantsText && <Check size={12} />}
+                                </div>
+                                <div>
+                                  <span className="text-xs font-bold text-slate-800 dark:text-neutral-200">
+                                    Custom Dedication Label on Box
+                                  </span>
+                                  <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5 leading-relaxed">
+                                    Print donor/family name and a custom blessing or occasion message directly on the package.
+                                  </p>
+                                </div>
+                              </div>
+                              <span className="text-xs font-bold text-[#798321] dark:text-[#FFC107] shrink-0 ml-2 whitespace-nowrap">
+                                + ₹{addonPrices.textCost}/member
+                              </span>
+                            </div>
+
+                            {wantsText && (
+                              <div className="border-t border-slate-200/50 px-3.5 pb-3.5 pt-2 dark:border-neutral-800 space-y-2">
+                                <input
+                                  type="text"
+                                  placeholder="Name to print (e.g. S. Ramesh & Family)"
+                                  value={packingLabelName}
+                                  onChange={(e) => setPackingLabelName(e.target.value)}
+                                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 dark:border-neutral-700 dark:bg-black dark:text-white focus:outline-none"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="Short wish (e.g. With love from Grandchildren)"
+                                  value={packingLabelDesc}
+                                  onChange={(e) => setPackingLabelDesc(e.target.value)}
+                                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 dark:border-neutral-700 dark:bg-black dark:text-white focus:outline-none"
+                                />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Option 4: Extra Celebration Gifts */}
+                          {dropdownItems.length > 0 && (
+                            <div className="rounded-2xl border border-slate-200 bg-white p-3.5 dark:border-neutral-800 dark:bg-[#121212] space-y-2.5">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-slate-800 dark:text-neutral-200">
+                                  Extra Celebration Gifts (Optional)
+                                </span>
+                                <span className="text-[10px] font-semibold text-slate-400">
+                                  {selectedItems.length} selected
+                                </span>
+                              </div>
+
+                              {addonPrices.extras.length > 4 && (
+                                <div className="relative">
+                                  <Search
+                                    size={13}
+                                    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                                  />
+                                  <input
+                                    type="text"
+                                    placeholder="Search add-ons..."
+                                    value={dropdownSearch}
+                                    onChange={(e) => setDropdownSearch(e.target.value)}
+                                    className="w-full rounded-xl bg-slate-50 py-1.5 pl-8 pr-3 text-xs text-slate-800 focus:outline-none dark:bg-black dark:text-white border border-slate-200 dark:border-neutral-800"
+                                  />
+                                </div>
+                              )}
+
+                              <div className="max-h-52 overflow-y-auto space-y-1.5 pr-1">
+                                {dropdownItems.map((item) => {
+                                  const isSelected = selectedItems.includes(item.id);
+                                  return (
+                                    <div
+                                      key={item.id}
+                                      onClick={() => toggleItemSelection(item.id)}
+                                      className={`flex cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-xs transition-colors border ${
+                                        isSelected
+                                          ? "border-[#798321] bg-[#798321]/10 dark:border-[#FFC107] dark:bg-[#FFC107]/10"
+                                          : "border-slate-100 hover:bg-slate-50 dark:border-neutral-800 dark:hover:bg-neutral-800/60"
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <div
+                                          className={`flex h-3.5 w-3.5 items-center justify-center rounded border ${
+                                            isSelected
+                                              ? "border-[#798321] bg-[#798321] text-white dark:border-[#FFC107] dark:bg-[#FFC107] dark:text-black"
+                                              : "border-slate-300 dark:border-neutral-600"
+                                          }`}
+                                        >
+                                          {isSelected && <Check size={10} />}
+                                        </div>
+                                        <span className="font-medium text-slate-700 dark:text-neutral-200">
+                                          {item.title}
+                                        </span>
+                                      </div>
+                                      <span className="font-bold text-[#798321] dark:text-[#FFC107]">
+                                        + ₹{item.cost}/member
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -905,6 +1266,23 @@ function DonateContent() {
                       ₹{(baseCostPerPerson * personCount).toLocaleString()}
                     </span>
                   </div>
+
+                  {/* Selected Sub-Item Add-ons Breakdown */}
+                  {selectedSubAddons.map((addonId) => {
+                    const addon = subItemAddons.find((a) => a.id === addonId);
+                    if (!addon) return null;
+                    return (
+                      <div key={addon.id} className="flex justify-between text-xs text-slate-700 dark:text-neutral-300">
+                        <span className="flex items-center gap-1.5 truncate pr-2">
+                          <Gift size={11} className="text-[#798321] dark:text-[#FFC107] shrink-0" />
+                          <span>Add-on: {addon.title} (₹{addon.cost} × {personCount})</span>
+                        </span>
+                        <span className="shrink-0 font-semibold">
+                          ₹{(addon.cost * personCount).toLocaleString()}
+                        </span>
+                      </div>
+                    );
+                  })}
 
                   {wantsPhoto && (
                     <div className="flex justify-between text-xs text-slate-500 dark:text-neutral-400">
@@ -1092,6 +1470,91 @@ function DonateContent() {
                   Return to Causes
                 </Link>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Concise Floating Popup / Toast */}
+      <AnimatePresence>
+        {popupMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[99999] flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-black shadow-2xl border border-slate-700 dark:border-neutral-200 text-xs font-semibold max-w-[92vw] sm:max-w-md"
+          >
+            <div className="h-5 w-5 rounded-full bg-rose-500 text-white flex items-center justify-center shrink-0">
+              <AlertCircle size={13} />
+            </div>
+            <span className="flex-1 leading-snug">{popupMessage}</span>
+            <button
+              type="button"
+              onClick={() => setPopupMessage("")}
+              className="p-1 rounded-lg hover:bg-white/10 dark:hover:bg-black/10 text-slate-400 hover:text-white dark:hover:text-black shrink-0 transition"
+            >
+              <X size={13} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Sample Packaging Photo Preview Modal */}
+      <AnimatePresence>
+        {showSamplePhotoModal && (
+          <div 
+            className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 sm:p-6"
+            onClick={() => setShowSamplePhotoModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative max-w-md w-full bg-white dark:bg-[#111] rounded-3xl border border-slate-200 dark:border-neutral-800 p-5 sm:p-6 shadow-2xl space-y-4"
+            >
+              <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-neutral-800">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-xl bg-amber-500/10 text-[#798321] dark:bg-[#FFC107]/15 dark:text-[#FFC107] flex items-center justify-center">
+                    <ImageIcon size={16} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      Sample Photo on Packaging
+                    </h3>
+                    <p className="text-[10px] text-slate-400">Custom Printed Sticker Example</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowSamplePhotoModal(false)}
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* High-Res Image Preview */}
+              <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-neutral-700 bg-slate-100 dark:bg-black shadow-inner">
+                <Image
+                  src="/images/packing-photo-sample.jpg"
+                  alt="Sample Photo on Packaging Preview"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+
+              <div className="rounded-xl bg-amber-500/10 p-3 text-[11px] text-amber-900 dark:text-amber-200 leading-relaxed">
+                <strong>How it works:</strong> When you upload a photo (e.g. birthday person, tribute, or family portrait), our team prints high-gloss custom sticker labels and affixes one to every sponsored food or gift package distributed to beneficiaries.
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowSamplePhotoModal(false)}
+                className="w-full py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-black text-xs font-bold transition shadow-sm"
+              >
+                Close Preview
+              </button>
             </motion.div>
           </div>
         )}

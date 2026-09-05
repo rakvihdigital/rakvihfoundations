@@ -357,7 +357,7 @@ function EnrollmentContent() {
                       );
                       if (course) setSelectedProgram(course);
                     }}
-                    className="w-full rounded-2xl border border-white/80 bg-white/80 px-5 py-4 text-sm font-medium outline-none backdrop-blur transition-all focus:border-[#FFC107] focus:ring-4 focus:ring-[#FFC107]/20 dark:border-neutral-800 dark:bg-[#171717] dark:text-white"
+                    className="w-full rounded-2xl border border-slate-200/90 bg-white/90 px-5 py-4 text-sm font-medium text-slate-800 outline-none backdrop-blur transition-all focus:border-[#798321] focus:bg-white focus:ring-4 focus:ring-[#798321]/20 dark:border-neutral-800 dark:bg-[#171717] dark:text-white dark:focus:border-[#FFC107] dark:focus:bg-[#171717] dark:focus:ring-[#FFC107]/20"
                   >
                     {programs.map((program) => (
                       <option key={program.id} value={program.id} className="dark:bg-[#171717] dark:text-white">
@@ -377,7 +377,7 @@ function EnrollmentContent() {
                   value={formData.full_name}
                   onChange={handleChange}
                   placeholder="Enter your full name"
-                  className="w-full rounded-2xl border border-white/80 bg-white/80 px-5 py-4 text-sm text-slate-700 outline-none backdrop-blur transition-all focus:border-[#FFC107] focus:ring-4 focus:ring-[#FFC107]/20 dark:border-neutral-800 dark:bg-[#171717] dark:text-white"
+                  className="w-full rounded-2xl border border-slate-200/90 bg-white/90 px-5 py-4 text-sm font-medium text-slate-800 outline-none backdrop-blur transition-all focus:border-[#798321] focus:bg-white focus:ring-4 focus:ring-[#798321]/20 dark:border-neutral-800 dark:bg-[#171717] dark:text-white dark:focus:border-[#FFC107] dark:focus:bg-[#171717] dark:focus:ring-[#FFC107]/20"
                 />
               </div>
 
@@ -392,7 +392,7 @@ function EnrollmentContent() {
                     onChange={handleChange}
                     type="email"
                     placeholder="Enter email"
-                    className="w-full rounded-2xl border border-white/80 bg-white/80 px-5 py-4 text-sm text-slate-700 outline-none backdrop-blur transition-all focus:border-[#FFC107] focus:ring-4 focus:ring-[#FFC107]/20 dark:border-neutral-800 dark:bg-[#171717] dark:text-white"
+                    className="w-full rounded-2xl border border-slate-200/90 bg-white/90 px-5 py-4 text-sm font-medium text-slate-800 outline-none backdrop-blur transition-all focus:border-[#798321] focus:bg-white focus:ring-4 focus:ring-[#798321]/20 dark:border-neutral-800 dark:bg-[#171717] dark:text-white dark:focus:border-[#FFC107] dark:focus:bg-[#171717] dark:focus:ring-[#FFC107]/20"
                   />
                 </div>
 
@@ -405,7 +405,7 @@ function EnrollmentContent() {
                     value={formData.phone}
                     onChange={handleChange}
                     placeholder="Enter phone"
-                    className="w-full rounded-2xl border border-white/80 bg-white/80 px-5 py-4 text-sm text-slate-700 outline-none backdrop-blur transition-all focus:border-[#FFC107] focus:ring-4 focus:ring-[#FFC107]/20 dark:border-neutral-800 dark:bg-[#171717] dark:text-white"
+                    className="w-full rounded-2xl border border-slate-200/90 bg-white/90 px-5 py-4 text-sm font-medium text-slate-800 outline-none backdrop-blur transition-all focus:border-[#798321] focus:bg-white focus:ring-4 focus:ring-[#798321]/20 dark:border-neutral-800 dark:bg-[#171717] dark:text-white dark:focus:border-[#FFC107] dark:focus:bg-[#171717] dark:focus:ring-[#FFC107]/20"
                   />
                 </div>
               </div>
@@ -419,7 +419,7 @@ function EnrollmentContent() {
                   value={formData.college}
                   onChange={handleChange}
                   placeholder="Enter college"
-                  className="w-full rounded-2xl border border-white/80 bg-white/80 px-5 py-4 text-sm text-slate-700 outline-none backdrop-blur transition-all focus:border-[#FFC107] focus:ring-4 focus:ring-[#FFC107]/20 dark:border-neutral-800 dark:bg-[#171717] dark:text-white"
+                  className="w-full rounded-2xl border border-slate-200/90 bg-white/90 px-5 py-4 text-sm font-medium text-slate-800 outline-none backdrop-blur transition-all focus:border-[#798321] focus:bg-white focus:ring-4 focus:ring-[#798321]/20 dark:border-neutral-800 dark:bg-[#171717] dark:text-white dark:focus:border-[#FFC107] dark:focus:bg-[#171717] dark:focus:ring-[#FFC107]/20"
                 />
               </div>
 
@@ -433,7 +433,7 @@ function EnrollmentContent() {
                     value={formData.branch}
                     onChange={handleChange}
                     placeholder="CSE / ECE / IT"
-                    className="w-full rounded-2xl border border-white/80 bg-white/80 px-5 py-4 text-sm text-slate-700 outline-none backdrop-blur transition-all focus:border-[#FFC107] focus:ring-4 focus:ring-[#FFC107]/20 dark:border-neutral-800 dark:bg-[#171717] dark:text-white"
+                    className="w-full rounded-2xl border border-slate-200/90 bg-white/90 px-5 py-4 text-sm font-medium text-slate-800 outline-none backdrop-blur transition-all focus:border-[#798321] focus:bg-white focus:ring-4 focus:ring-[#798321]/20 dark:border-neutral-800 dark:bg-[#171717] dark:text-white dark:focus:border-[#FFC107] dark:focus:bg-[#171717] dark:focus:ring-[#FFC107]/20"
                   />
                 </div>
 
@@ -445,7 +445,7 @@ function EnrollmentContent() {
                     name="year"
                     value={formData.year}
                     onChange={handleChange}
-                    className="w-full rounded-2xl border border-white/80 bg-white/80 px-5 py-4 text-sm text-slate-700 outline-none backdrop-blur transition-all focus:border-[#FFC107] focus:ring-4 focus:ring-[#FFC107]/20 dark:border-neutral-800 dark:bg-[#171717] dark:text-white"
+                    className="w-full rounded-2xl border border-slate-200/90 bg-white/90 px-5 py-4 text-sm font-medium text-slate-800 outline-none backdrop-blur transition-all focus:border-[#798321] focus:bg-white focus:ring-4 focus:ring-[#798321]/20 dark:border-neutral-800 dark:bg-[#171717] dark:text-white dark:focus:border-[#FFC107] dark:focus:bg-[#171717] dark:focus:ring-[#FFC107]/20"
                   >
                     <option value="" className="dark:bg-[#171717] dark:text-white">Select Year</option>
                     <option className="dark:bg-[#171717] dark:text-white">1st Year</option>
@@ -467,7 +467,7 @@ function EnrollmentContent() {
                   onChange={handleChange}
                   rows={4}
                   placeholder="Enter your address"
-                  className="w-full resize-none rounded-2xl border border-white/80 bg-white/80 px-5 py-4 text-sm text-slate-700 outline-none backdrop-blur transition-all focus:border-[#FFC107] focus:ring-4 focus:ring-[#FFC107]/20 dark:border-neutral-800 dark:bg-[#171717] dark:text-white"
+                  className="w-full resize-none rounded-2xl border border-slate-200/90 bg-white/90 px-5 py-4 text-sm font-medium text-slate-800 outline-none backdrop-blur transition-all focus:border-[#798321] focus:bg-white focus:ring-4 focus:ring-[#798321]/20 dark:border-neutral-800 dark:bg-[#171717] dark:text-white dark:focus:border-[#FFC107] dark:focus:bg-[#171717] dark:focus:ring-[#FFC107]/20"
                 />
               </div>
 

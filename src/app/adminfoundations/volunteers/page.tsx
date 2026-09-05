@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { Fraunces } from "next/font/google";
-import { Users, Search, Trash2, Eye, Droplet, Phone, Mail, MapPin, Calendar, X, CheckCircle2, XCircle, Clock, Check } from "lucide-react";
+import { Users, Search, Trash2, Eye, Droplet, Phone, Mail, MapPin, Calendar, X, CheckCircle2, XCircle, Clock, Check, Award } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminHeader from "@/components/foundation/adminheader";
 import { getVolunteers, deleteVolunteer, updateVolunteerStatus } from "./actions";
@@ -78,6 +78,7 @@ export default function AdminVolunteersPage() {
   });
 
   const pendingVolunteersCount = volunteers.filter((v) => (v.status || "pending") === "pending").length;
+  const certifiedVolunteersCount = volunteers.filter((v) => (v.completed_opportunities || 0) >= 1).length;
 
   return (
     <div className={`min-h-screen bg-black ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
@@ -103,6 +104,10 @@ export default function AdminVolunteersPage() {
             <div className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
               <span className="block text-[10px] font-bold uppercase text-slate-400">Blood Donors</span>
               <span className="text-lg font-extrabold text-rose-600 dark:text-rose-400">{volunteers.filter(v => v.active_blood_donor === 'Yes').length}</span>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+              <span className="block text-[10px] font-bold uppercase text-slate-400">Certified Volunteers</span>
+              <span className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400">{certifiedVolunteersCount}</span>
             </div>
           </div>
 
@@ -149,6 +154,7 @@ export default function AdminVolunteersPage() {
                       <th className="py-4 px-4">Status</th>
                       <th className="py-4 px-4">Type</th>
                       <th className="py-4 px-4">Location</th>
+                      <th className="py-4 px-4">Impact / Cert</th>
                       <th className="py-4 px-4">Blood Info</th>
                       <th className="py-4 px-6 text-right">Actions</th>
                     </tr>
@@ -175,6 +181,15 @@ export default function AdminVolunteersPage() {
                           </td>
                           <td className="py-4 px-4"><span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#798321]/10 text-[#798321] dark:bg-[#FFC107]/10 dark:text-[#FFC107]">{volunteer.volunteer_type}</span></td>
                           <td className="py-4 px-4 font-medium text-slate-600 dark:text-zinc-300">{volunteer.city}</td>
+                          <td className="py-4 px-4">
+                            {(volunteer.completed_opportunities || 0) >= 1 ? (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800">
+                                <Award size={11} /> {volunteer.completed_opportunities} Completed
+                              </span>
+                            ) : (
+                              <span className="text-slate-400 dark:text-zinc-500 text-[10px] font-medium">0 Done</span>
+                            )}
+                          </td>
                           <td className="py-4 px-4 space-y-1">
                             {volunteer.blood_group && <span className="inline-flex items-center gap-1 font-bold text-rose-600 dark:text-rose-400 text-[11px]"><Droplet size={11} /> {volunteer.blood_group}</span>}
                             {volunteer.active_blood_donor === "Yes" && <span className="block text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">Active Donor</span>}
@@ -232,6 +247,22 @@ export default function AdminVolunteersPage() {
                     {(selectedVolunteer.status || "pending") === "approved" && <span className="text-emerald-600 dark:text-emerald-400">Approved</span>}
                     {(selectedVolunteer.status || "pending") === "pending" && <span className="text-amber-600 dark:text-amber-400">Pending Approval</span>}
                     {(selectedVolunteer.status || "pending") === "rejected" && <span className="text-rose-600 dark:text-rose-400">Rejected</span>}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-slate-400 block font-bold uppercase text-[10px]">Impact / Completed</span>
+                  <div className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                    <Award size={13} /> {selectedVolunteer.completed_opportunities || 0} Completed Opportunities
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-slate-400 block font-bold uppercase text-[10px]">Certificate Status</span>
+                  <div className="font-semibold">
+                    {(selectedVolunteer.completed_opportunities || 0) >= 1 ? (
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">Unlocked</span>
+                    ) : (
+                      <span className="text-slate-400 font-medium">Locked (Needs 1+ Completed)</span>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-1"><span className="text-slate-400 block font-bold uppercase text-[10px]">Blood Group</span><div className="font-semibold text-rose-600 dark:text-rose-400 flex items-center gap-1.5"><Droplet size={13} /> {selectedVolunteer.blood_group || 'Not specified'}</div></div>

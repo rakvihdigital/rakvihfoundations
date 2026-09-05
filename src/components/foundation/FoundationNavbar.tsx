@@ -5,10 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { Fraunces } from "next/font/google";
-import { ArrowLeft, Heart, Menu, X, Sun, Moon, ChevronDown, Layers, Users } from "lucide-react";
+import { ArrowLeft, Heart, Menu, X, Sun, Moon, ChevronDown, Layers, Users, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@supabase/supabase-js";
+import LanguageTranslator from "@/components/foundation/LanguageTranslator";
 
 const display = Fraunces({
   subsets: ["latin"],
@@ -59,6 +60,7 @@ export default function FoundationNavbar() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [mounted, setMounted] = useState(false);
+  const [volunteer, setVolunteer] = useState<{ id: string; name: string } | null>(null);
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
@@ -93,14 +95,43 @@ export default function FoundationNavbar() {
 
     fetchNavbarCauses();
 
+    const checkVolunteer = () => {
+      if (typeof window !== "undefined") {
+        const vid = localStorage.getItem("rakvih_volunteer_id");
+        const vname = localStorage.getItem("rakvih_volunteer_name");
+        if (vid) {
+          setVolunteer({ id: vid, name: vname || "Volunteer" });
+        } else {
+          setVolunteer(null);
+        }
+      }
+    };
+
+    checkVolunteer();
+    window.addEventListener("storage", checkVolunteer);
+
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setCausesOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    return () => {
+      window.removeEventListener("storage", checkVolunteer);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [pathname]);
+
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("rakvih_volunteer_id");
+      localStorage.removeItem("rakvih_volunteer_name");
+      setVolunteer(null);
+      if (pathname.includes("/foundation/volunteer/dashboard")) {
+        router.push("/foundation/volunteer");
+      }
+    }
+  };
 
   if (
     pathname.includes("/foundation/volunteer/dashboard") ||
@@ -125,13 +156,13 @@ export default function FoundationNavbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-[999] w-full border-b border-slate-200 bg-white/90 backdrop-blur-md dark:border-neutral-800 dark:bg-black/90 transition-colors duration-500 ${display.variable}`}
     >
-      <div className="mx-auto flex h-[90px] sm:h-[96px] max-w-[1400px] items-center justify-between px-3 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-[88px] sm:h-[94px] max-w-[1440px] items-center justify-between px-3 sm:px-4 lg:px-6 gap-2 xl:gap-4">
         
-        {/* Left: Back Arrow & Substantially Enlarged Logo */}
-        <div className="flex items-center gap-1.5 sm:gap-4 min-w-0">
+        {/* Left: Back Arrow & Logo */}
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           <button
             onClick={handleBack}
-            className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700"
+            className="flex h-9 w-9 sm:h-9.5 sm:w-9.5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700"
             title="Go back"
             aria-label="Go back"
           >
@@ -139,33 +170,32 @@ export default function FoundationNavbar() {
           </button>
 
           <Link href="/foundation" className="group flex items-center bg-transparent">
-            {/* Enlarged dimensions across all breakpoints with scale-up compensation */}
-            <div className="relative h-[72px] w-[215px] shrink-0 min-[400px]:w-[245px] sm:h-[82px] sm:w-[295px] md:h-[88px] md:w-[350px] bg-transparent">
+            <div className="relative h-[68px] w-[195px] shrink-0 min-[400px]:w-[220px] sm:h-[76px] sm:w-[250px] md:h-[80px] md:w-[265px] lg:w-[250px] xl:h-[84px] xl:w-[290px] bg-transparent">
               <Image
                 src="/rakvih-foundation.png"
                 alt="RAKVIH Foundation Logo"
                 fill
                 priority
                 unoptimized
-                sizes="(max-width: 640px) 245px, 350px"
-                className="object-contain object-left scale-125 sm:scale-130 origin-left transition-transform duration-300 group-hover:scale-135 !bg-transparent"
+                sizes="(max-width: 640px) 220px, 290px"
+                className="object-contain object-left scale-115 sm:scale-120 origin-left transition-transform duration-300 group-hover:scale-125 !bg-transparent"
               />
             </div>
           </Link>
         </div>
 
-        {/* Middle: Desktop Navigation Links */}
-        <div className="hidden items-center gap-8 lg:flex">
+        {/* Middle: Desktop Navigation Links (Flex-1, never overlaps left or right elements) */}
+        <nav className="hidden lg:flex items-center justify-center flex-1 min-w-0 mx-1 xl:mx-4 gap-3 lg:gap-3.5 xl:gap-5 2xl:gap-7">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
 
             if (link.hasDropdown) {
               return (
-                <div key={link.href} className="relative" ref={dropdownRef}>
+                <div key={link.href} className="relative shrink-0" ref={dropdownRef}>
                   <button
                     onClick={() => setCausesOpen(!causesOpen)}
                     style={{ fontFamily: "var(--font-display)" }}
-                    className={`flex items-center gap-1.5 text-[15px] font-medium tracking-tight transition-colors ${
+                    className={`flex items-center gap-1 text-[13px] xl:text-[14px] 2xl:text-[15px] font-medium tracking-tight whitespace-nowrap transition-colors ${
                       isActive || pathname.startsWith("/foundation/causes")
                         ? "text-[#798321] dark:text-[#FFC107]"
                         : "text-slate-600 hover:text-[#24310F] dark:text-neutral-400 dark:hover:text-white"
@@ -173,7 +203,7 @@ export default function FoundationNavbar() {
                   >
                     <span>{link.label}</span>
                     <ChevronDown
-                      size={14}
+                      size={13}
                       className={`transition-transform duration-200 ${causesOpen ? "rotate-180" : ""}`}
                     />
                   </button>
@@ -186,7 +216,7 @@ export default function FoundationNavbar() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute left-1/2 -translate-x-1/2 mt-3 w-[920px] max-w-[95vw] rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-neutral-800 dark:bg-[#0a0a0a] z-50 max-h-[75vh] overflow-y-auto space-y-4"
+                        className="absolute left-1/2 -translate-x-1/2 mt-3 w-[860px] max-w-[90vw] rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-neutral-800 dark:bg-[#0a0a0a] z-50 max-h-[75vh] overflow-y-auto space-y-4"
                       >
                         <div className="flex items-center justify-between border-b border-slate-100 pb-3 px-1 dark:border-neutral-800">
                           <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
@@ -251,7 +281,7 @@ export default function FoundationNavbar() {
                 key={link.href}
                 href={link.href}
                 style={{ fontFamily: "var(--font-display)" }}
-                className={`relative text-[15px] font-medium tracking-tight transition-colors ${
+                className={`relative text-[13px] xl:text-[14px] 2xl:text-[15px] font-medium tracking-tight transition-colors whitespace-nowrap shrink-0 ${
                   isActive
                     ? "text-[#798321] dark:text-[#FFC107]"
                     : "text-slate-600 hover:text-[#24310F] dark:text-neutral-400 dark:hover:text-white"
@@ -267,14 +297,16 @@ export default function FoundationNavbar() {
               </Link>
             );
           })}
-        </div>
+        </nav>
 
-        {/* Right: Controls */}
-        <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
+        {/* Right: Controls (shrink-0, perfectly positioned) */}
+        <div className="flex items-center gap-1.5 sm:gap-2 xl:gap-2.5 shrink-0">
+          <LanguageTranslator variant="desktop" />
+
           <button
             onClick={toggleTheme}
             aria-label="Toggle Theme"
-            className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:bg-slate-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700 sm:h-10 sm:w-10"
+            className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:bg-slate-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700 sm:h-9.5 sm:w-9.5 shrink-0"
           >
             {!mounted ? (
               <div className="h-[18px] w-[18px]" />
@@ -294,31 +326,58 @@ export default function FoundationNavbar() {
             )}
           </button>
 
-          {/* Volunteer Button */}
-          <Link
-            href="/foundation/volunteer"
-            style={{ fontFamily: "var(--font-display)" }}
-            className="group hidden items-center gap-2 rounded-full border border-[#798321]/40 bg-transparent px-4 py-2 text-xs font-semibold text-[#798321] transition-all hover:bg-[#798321]/10 dark:border-[#FFC107]/40 dark:text-[#FFC107] dark:hover:bg-[#FFC107]/10 sm:flex sm:px-4 sm:py-2.5 sm:text-sm"
-          >
-            <Users size={16} className="transition-transform group-hover:scale-110" />
-            <span>Volunteer</span>
-          </Link>
+          {/* Volunteer Button - only shown when not logged in */}
+          {!volunteer && (
+            <Link
+              href="/foundation/volunteer"
+              style={{ fontFamily: "var(--font-display)" }}
+              className="group hidden items-center gap-1.5 rounded-full border border-[#798321]/40 bg-transparent px-3 py-2 text-xs font-semibold text-[#798321] transition-all hover:bg-[#798321]/10 dark:border-[#FFC107]/40 dark:text-[#FFC107] dark:hover:bg-[#FFC107]/10 xl:flex xl:px-3.5 xl:py-2.5 sm:text-sm shrink-0 whitespace-nowrap"
+            >
+              <Users size={15} className="transition-transform group-hover:scale-110" />
+              <span>Volunteer</span>
+            </Link>
+          )}
 
           {/* Donate Button */}
           <Link
             href="/foundation/genraldonate"
             style={{ fontFamily: "var(--font-display)" }}
-            className="group hidden items-center gap-2 rounded-full bg-gradient-to-r from-[#798321] to-[#FFC107] px-4 py-2 text-xs font-semibold text-white shadow-md transition-transform hover:-translate-y-0.5 sm:flex sm:px-5 sm:py-2.5 sm:text-sm dark:text-black"
+            className="group hidden items-center gap-1.5 rounded-full bg-gradient-to-r from-[#798321] to-[#FFC107] px-3.5 py-2 text-xs font-semibold text-white shadow-md transition-transform hover:-translate-y-0.5 sm:flex sm:px-4 sm:py-2.5 sm:text-sm dark:text-black shrink-0 whitespace-nowrap"
           >
-            <Heart size={16} className="transition-transform group-hover:scale-110" fill="currentColor" />
+            <Heart size={15} className="transition-transform group-hover:scale-110" fill="currentColor" />
             <span>Donate</span>
           </Link>
+
+          {/* Logged in Volunteer Badge & Logout Button */}
+          {volunteer && (
+            <div className="hidden sm:flex items-center gap-1.5 pl-2 border-l border-slate-200 dark:border-neutral-800 shrink-0">
+              <Link
+                href="/foundation/volunteer/dashboard"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-[#798321]/10 text-[#798321] hover:bg-[#798321]/20 dark:bg-[#FFC107]/15 dark:text-[#FFC107] dark:hover:bg-[#FFC107]/25 transition text-xs font-bold shadow-sm shrink-0"
+                title={`Logged in as ${volunteer.name}. Click to view dashboard.`}
+              >
+                <div className="h-5 w-5 rounded-full bg-[#798321] text-white dark:bg-[#FFC107] dark:text-black flex items-center justify-center text-[10px] font-extrabold shrink-0">
+                  {volunteer.name.charAt(0).toUpperCase()}
+                </div>
+                <span className="max-w-[85px] xl:max-w-[110px] truncate">{volunteer.name}</span>
+              </Link>
+              
+              <button
+                onClick={handleLogout}
+                title="Log out from volunteer account"
+                className="flex items-center gap-1 px-2 py-1.5 rounded-full text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200/80 dark:border-rose-900/40 dark:text-rose-400 dark:hover:bg-rose-950/40 transition shrink-0"
+              >
+                <LogOut size={13} />
+                <span className="hidden xl:inline text-[11px]">Logout</span>
+              </button>
+            </div>
+          )}
 
           {/* Mobile Hamburger Toggle */}
           <button
             onClick={() => setOpen(!open)}
             aria-label="Toggle Menu"
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:bg-slate-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700 lg:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:bg-slate-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700 lg:hidden shrink-0"
           >
             {open ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -401,16 +460,52 @@ export default function FoundationNavbar() {
                 );
               })}
 
+              <LanguageTranslator variant="mobile" />
+
               <div className="pt-4 flex flex-col gap-2.5 sm:hidden">
-                <Link
-                  href="/foundation/volunteer"
-                  onClick={() => setOpen(false)}
-                  style={{ fontFamily: "var(--font-display)" }}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#798321]/40 bg-transparent px-5 py-3 text-sm font-semibold text-[#798321] dark:border-[#FFC107]/40 dark:text-[#FFC107]"
-                >
-                  <Users size={18} />
-                  Join as Volunteer
-                </Link>
+                {volunteer ? (
+                  <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 space-y-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-8 w-8 rounded-full bg-[#798321] text-white dark:bg-[#FFC107] dark:text-black flex items-center justify-center font-bold text-xs">
+                        {volunteer.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="overflow-hidden">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{volunteer.name}</p>
+                        <p className="text-[10px] font-bold text-[#798321] dark:text-[#FFC107] uppercase">Volunteer Active</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link
+                        href="/foundation/volunteer/dashboard"
+                        onClick={() => setOpen(false)}
+                        className="flex items-center justify-center gap-1 rounded-xl bg-[#798321] text-white dark:bg-[#FFC107] dark:text-black py-2 text-xs font-bold shadow transition"
+                      >
+                        <Users size={13} />
+                        Dashboard
+                      </Link>
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setOpen(false);
+                        }}
+                        className="flex items-center justify-center gap-1 rounded-xl border border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 py-2 text-xs font-bold hover:bg-rose-50 dark:hover:bg-rose-950/30 transition"
+                      >
+                        <LogOut size={13} />
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <Link
+                    href="/foundation/volunteer"
+                    onClick={() => setOpen(false)}
+                    style={{ fontFamily: "var(--font-display)" }}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#798321]/40 bg-transparent px-5 py-3 text-sm font-semibold text-[#798321] dark:border-[#FFC107]/40 dark:text-[#FFC107]"
+                  >
+                    <Users size={18} />
+                    Join as Volunteer
+                  </Link>
+                )}
 
                 <Link
                   href="/foundation/genraldonate"

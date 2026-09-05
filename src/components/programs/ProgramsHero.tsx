@@ -8,8 +8,8 @@ export default function ProgramsHero() {
       className="
         relative
         overflow-hidden
-        py-14
-        md:py-20
+        py-10
+        md:py-14
         transition-all
         duration-500
 
@@ -118,7 +118,7 @@ export default function ProgramsHero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
           className="
-            mt-3
+            mt-2.5
             text-3xl
             font-[900]
             tracking-tight
@@ -139,7 +139,7 @@ export default function ProgramsHero() {
           transition={{ delay: 0.3, duration: 0.5 }}
           className="
             mx-auto
-            mt-4
+            mt-2.5
             h-[3px]
             w-12
             rounded-full
@@ -156,7 +156,7 @@ export default function ProgramsHero() {
           transition={{ delay: 0.4 }}
           className="
             mx-auto
-            mt-5
+            mt-3
             max-w-xl
             text-xs
             font-medium

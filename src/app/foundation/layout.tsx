@@ -13,7 +13,7 @@ const display = Fraunces({
 
 export default function FoundationLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`flex min-h-screen flex-col bg-[#F8FAF0] text-slate-900 dark:bg-[#0B1220] dark:text-slate-100 ${display.variable}`}>
+    <div className={`flex min-h-screen flex-col overflow-x-clip bg-[#F8FAF0] text-slate-900 dark:bg-[#0B1220] dark:text-slate-100 ${display.variable}`}>
       
       {/* Navbar (Fixed at Top) */}
       <FoundationNavbar />
@@ -22,7 +22,7 @@ export default function FoundationLayout({ children }: { children: React.ReactNo
         🚀 FIX: Removed the "max-w-5xl px-6" so sections can stretch full-width.
         Added "pt-[76px]" so the content starts right below the fixed navbar.
       */}
-      <main className="w-full flex-1 pt-[76px]">
+      <main className="w-full flex-1 pt-[76px] overflow-x-clip">
         {children}
       </main>
 

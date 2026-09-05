@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Fraunces } from "next/font/google";
 import { 
   LayoutDashboard, 
@@ -11,11 +12,11 @@ import {
   LogOut, 
   Menu, 
   X,
-  HeartHandshake,
   Award,
   Bell,
   BookOpen,
-  Trophy,
+  Heart,
+  Globe,
 } from "lucide-react";
 
 const display = Fraunces({
@@ -56,8 +57,9 @@ export default function VolunteerDashboardLayout({
     { name: "Dashboard", href: "/foundation/volunteer/dashboard", icon: LayoutDashboard },
     { name: "Opportunities", href: "/foundation/volunteer/dashboard/events", icon: CalendarDays },
     { name: "History & Rewards", href: "/foundation/volunteer/dashboard/history", icon: Award },
-    { name: "Achievements", href: "/foundation/volunteer/dashboard/achievements", icon: Trophy },
+    { name: "Volunteer Donate", href: "/foundation/volunteer/dashboard/donate", icon: Heart },
     { name: "Notice Board", href: "/foundation/volunteer/dashboard/announcements", icon: Bell },
+    { name: "Back to Site", href: "/foundation", icon: Globe },
     { name: "My Profile & Id card", href: "/foundation/volunteer/dashboard/profile", icon: User },
   ];
 
@@ -81,13 +83,37 @@ export default function VolunteerDashboardLayout({
         <div className="flex flex-col h-full">
           
           {/* Logo Area */}
-          <div className="p-6 border-b border-slate-100 dark:border-neutral-900 flex items-center gap-3 shrink-0">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#798321] text-white dark:bg-[#FFC107] dark:text-black shadow-md">
-              <HeartHandshake size={20} />
-            </div>
-            <Link href="/foundation/volunteer/dashboard" className="text-lg font-extrabold leading-tight text-slate-900 dark:text-white">
-              RAKVIH <br/><span className="text-[#798321] dark:text-[#FFC107]">Volunteer</span>
+          <div className="p-5 border-b border-slate-100 dark:border-neutral-900 flex items-center justify-between shrink-0">
+            <Link 
+              href="/foundation/volunteer/dashboard" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-3 min-w-0"
+            >
+              <div className="relative h-12 w-12 shrink-0 flex items-center justify-center overflow-visible">
+                <Image
+                  src="/images/logo-dark.png"
+                  alt="RAKVIH Foundation"
+                  width={80}
+                  height={80}
+                  priority
+                  className="h-full w-full object-contain scale-[1.75] origin-center"
+                />
+              </div>
+              <div className="leading-tight truncate pl-1">
+                <span className="block text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
+                  RAKVIH Foundation
+                </span>
+                <span className="block text-[10px] font-bold text-[#798321] dark:text-[#FFC107] uppercase tracking-wider">
+                  Volunteer Portal
+                </span>
+              </div>
             </Link>
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white"
+            >
+              <X size={18} />
+            </button>
           </div>
 
           {/* Navigation Links */}

@@ -28,13 +28,23 @@ function GeneralDonateContent() {
   const [donationDate, setDonationDate] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
-  
   const [dedicationType, setDedicationType] = useState<string>("General Foundation Support");
   
   const [donorName, setDonorName] = useState("");
+  const [donorEmail, setDonorEmail] = useState("");
+  const [donorPhone, setDonorPhone] = useState("");
   const [donorMessage, setDonorMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const vName = localStorage.getItem("rakvih_volunteer_name");
+      const vEmail = localStorage.getItem("rakvih_volunteer_email");
+      if (vName && !donorName) setDonorName(vName);
+      if (vEmail && !donorEmail) setDonorEmail(vEmail);
+    }
+  }, []);
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -72,7 +82,25 @@ function GeneralDonateContent() {
 
   const handlePaymentCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!donorName || !amount) return;
+    if (!donorName.trim()) {
+      alert("Please enter your full name.");
+      return;
+    }
+
+    if (!donorEmail.trim() || !/^\S+@\S+\.\S+$/.test(donorEmail.trim())) {
+      alert("Please enter a valid email address to receive your donation receipt.");
+      return;
+    }
+
+    if (!donorPhone.trim() || donorPhone.trim().length < 7) {
+      alert("Please enter a valid contact phone number.");
+      return;
+    }
+
+    if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+      alert("Please enter a valid donation amount.");
+      return;
+    }
 
     try {
       setSubmitting(true);
@@ -99,12 +127,15 @@ function GeneralDonateContent() {
             const { error: insertError } = await supabase.from("donations").insert([
               {
                 cause_id: null,
-                donor_name: donorName,
+                donor_name: donorName.trim(),
+                email: donorEmail.trim(),
+                phone: donorPhone.trim(),
                 donor_image: "",
                 amount: donationAmount,
                 message: donorMessage || "General support for foundation initiatives",
                 donation_date: donationDate,
                 dedication_type: dedicationType,
+                is_donated: true,
               },
             ]);
 
@@ -116,6 +147,8 @@ function GeneralDonateContent() {
 
             setSuccess(true);
             setDonorName("");
+            setDonorEmail("");
+            setDonorPhone("");
             setDonorMessage("");
             setDedicationType("General Foundation Support");
             setAmount("500");
@@ -135,7 +168,9 @@ function GeneralDonateContent() {
           }
         },
         prefill: {
-          name: donorName,
+          name: donorName.trim(),
+          email: donorEmail.trim(),
+          contact: donorPhone.trim(),
         },
         theme: {
           color: "#798321",
@@ -158,20 +193,20 @@ function GeneralDonateContent() {
   };
 
   return (
-    <div className={`min-h-screen bg-slate-50 dark:bg-black pb-20 transition-colors duration-500 ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
+    <div className={`min-h-screen overflow-x-clip bg-slate-50 dark:bg-black pb-12 sm:pb-16 transition-colors duration-500 ${display.variable}`} style={{ fontFamily: "var(--font-display)" }}>
       
       {/* Header Section */}
-      <section className="relative overflow-hidden pt-24 pb-16 bg-gradient-to-b from-[#24310F] via-[#2F3E14] to-[#F8FAF0] text-white dark:from-black dark:via-black dark:to-black">
+      <section className="relative overflow-hidden pt-10 pb-6 sm:pt-14 sm:pb-8 bg-gradient-to-b from-[#24310F] via-[#2F3E14] to-[#F8FAF0] text-white dark:from-black dark:via-black dark:to-black">
         <div className="relative mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
           
-          <div className="flex flex-col items-center gap-2 mb-4">
+          <div className="flex flex-col items-center gap-2 mb-3">
             
             <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-4 py-1.5 text-xs font-semibold tracking-wide text-[#FFC107] backdrop-blur-md uppercase shadow-lg">
               <Sparkles className="h-3.5 w-3.5 animate-pulse" /> Secure Razorpay Checkout
             </div>
           </div>
 
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl mb-3">
+          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl mb-2">
             Contribute to <span className="text-[#FFC107]">Our Foundation</span>
           </h1>
           <p className="max-w-2xl mx-auto text-xs sm:text-sm text-slate-300 dark:text-neutral-300 leading-relaxed">
@@ -180,7 +215,7 @@ function GeneralDonateContent() {
         </div>
       </section>
 
-      <main className="mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-4 pt-5 sm:pt-7 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           <div className="lg:col-span-7 space-y-8">
@@ -345,7 +380,7 @@ function GeneralDonateContent() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-neutral-300 mb-1.5">Your Full Name</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-neutral-300 mb-1.5">Your Full Name *</label>
                     <input
                       type="text"
                       placeholder="e.g. Priya Sharma"
@@ -354,6 +389,31 @@ function GeneralDonateContent() {
                       required
                       className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-4 text-xs font-medium text-slate-800 focus:border-[#798321] focus:outline-none dark:border-neutral-800 dark:bg-[#171717] dark:text-white"
                     />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-neutral-300 mb-1.5">Email Address *</label>
+                      <input
+                        type="email"
+                        placeholder="e.g. priya@example.com"
+                        value={donorEmail}
+                        onChange={(e) => setDonorEmail(e.target.value)}
+                        required
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-4 text-xs font-medium text-slate-800 focus:border-[#798321] focus:outline-none dark:border-neutral-800 dark:bg-[#171717] dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-neutral-300 mb-1.5">Phone Number *</label>
+                      <input
+                        type="tel"
+                        placeholder="e.g. +91 98765 43210"
+                        value={donorPhone}
+                        onChange={(e) => setDonorPhone(e.target.value)}
+                        required
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-4 text-xs font-medium text-slate-800 focus:border-[#798321] focus:outline-none dark:border-neutral-800 dark:bg-[#171717] dark:text-white"
+                      />
+                    </div>
                   </div>
 
                   <div>

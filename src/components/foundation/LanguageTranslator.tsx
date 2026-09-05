@@ -13,10 +13,10 @@ export interface Language {
 
 export const SUPPORTED_LANGUAGES: Language[] = [
   { code: "en", name: "English", nativeName: "English", shortLabel: "EN" },
+  { code: "kn", name: "Kannada", nativeName: "ಕನ್ನಡ", shortLabel: "ಕನ್ನಡ" },
   { code: "ta", name: "Tamil", nativeName: "தமிழ்", shortLabel: "தமிழ்" },
   { code: "te", name: "Telugu", nativeName: "తెలుగు", shortLabel: "తెలుగు" },
   { code: "hi", name: "Hindi", nativeName: "हिन्दी", shortLabel: "हिन्दी" },
-  { code: "kn", name: "Kannada", nativeName: "ಕನ್ನಡ", shortLabel: "ಕನ್ನಡ" },
 ];
 
 declare global {

@@ -713,7 +713,7 @@ function VolunteerFormContent() {
                 {/* Volunteer Type - Individual Volunteer Only */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-neutral-300 mb-1.5">
-                    Volunteer Type *
+                    Volunteer Type
                   </label>
                   <select
                     name="volunteerType"
